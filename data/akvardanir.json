@@ -2,7 +2,9 @@
  "stillingar": {
   "skoli": "Þjórsárskóli",
   "skolaar": "2026–2027",
-  "merki": "merki.png"
+  "merki": "merki.png",
+  "namsmat": "⟨Lýsið hér matskvarða og matstáknum sem notuð eru í 1.–9. bekk.⟩ Í 10. bekk skólaárið 2026–2027 er námsmat á talnakvarðanum 1–10 og einkunnir við brautskráningu gefnar á kvarðanum 4–10, eins og lýst er hér að neðan.",
+  "fyrirvari": true
  },
  "forgangur": {
   "0.0.0": {
