@@ -89,6 +89,7 @@ iframe{width:100%;height:75vh;border:1px solid var(--line);border-radius:12px;ba
 </header>
 <main id="main">Hleð gögnum…</main>
 <script src="smidi.js"></script>
+<script src="almennur-drog.js"></script>
 <script>
 "use strict";
 let G=null, A=null, SHA=null, timer=null, LOCAL=false;
@@ -132,7 +133,7 @@ async function load(){
 function head(){
   const s=A.stillingar; $('#hsub').textContent=`${s.skoli} · ${s.skolaar}`;
   if(s.merki){$('#logo').src=s.merki;$('#logo').classList.remove('hidden')} else $('#logo').classList.add('hidden');
-  const T=[['yfirlit','Heildarmynd'],['forg','Forgangsröðun'],['naa','Námsáætlanir'],['sk','Skólanámskrá'],['still','Stillingar']];
+  const T=[['yfirlit','Heildarmynd'],['forg','Forgangsröðun'],['naa','Námsáætlanir'],['sk','Skólanámskrá'],['alm','Almennur hluti'],['still','Stillingar']];
   $('#nav').innerHTML=T.map(([k,l])=>`<button class="${V.tab===k?'on':''}" onclick="tab('${k}')">${l}</button>`).join('');
 }
 function tab(t){V.tab=t;head();render();window.scrollTo(0,0)}
@@ -363,7 +364,96 @@ async function setTok(){const v=$('#tok').value.trim();if(!v||v.startsWith('•�
     location.reload()}catch(e){alert('Lykillinn virkar ekki: '+e.message);localStorage.removeItem('gh_token')}}
 async function pushLocal(){if(!GH.token){exp();return}try{const x=await ghGet();SHA=x.sha;const r=await ghPut(A);if(r!=='ok')throw new Error('árekstur');localStorage.removeItem('akv_stadbundid');location.reload()}catch(e){alert('Mistókst: '+e.message)}}
 function exp(){const b=new Blob([JSON.stringify(A,null,1)],{type:'application/json'});const x=document.createElement('a');x.href=URL.createObjectURL(b);x.download='akvardanir.json';x.click()}
-function render(){const m=$('#main');m.innerHTML=V.tab==='yfirlit'?vYfirlit():V.tab==='forg'?vForg():V.tab==='naa'?vNaa():V.tab==='sk'?vSk():vStill()}
+/* ---------- Almennur hluti (sér gögn: data/almennur.json) ---------- */
+let ALM=null, ALMSHA=null, almTimer=null, almSel=null;
+const ALMPATH='data/almennur.json', ALMLOC='alm_stadbundid';
+async function almLoad(){
+  if(ALM) return;
+  try{
+    if(GH.token){const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+      if(r.status===404){ALM={meta:{},kaflar:{}};ALMSHA=null}else{if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();ALM=JSON.parse(b64d(j.content));ALMSHA=j.sha}}
+    else{const r=await fetch(ALMPATH+'?t='+Date.now(),{cache:'no-store'});ALM=r.ok?await r.json():{meta:{},kaflar:{}}}
+  }catch(e){ALM={meta:{},kaflar:{}}}
+  const loc=localStorage.getItem(ALMLOC); if(loc&&!GH.token) ALM=JSON.parse(loc);
+  ALM.meta=ALM.meta||{}; ALM.kaflar=ALM.kaflar||{};
+}
+function almSave(){
+  ALM.breytt=new Date().toISOString();
+  if(!GH.token){localStorage.setItem(ALMLOC,JSON.stringify(ALM));$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
+  $('#vista').textContent='Vista á GitHub…'; clearTimeout(almTimer);
+  almTimer=setTimeout(async()=>{try{
+    const body={message:'Almennur hluti skólanámskrár: uppfærsla',content:b64e(JSON.stringify(ALM,null,1)),branch:GH.branch}; if(ALMSHA) body.sha=ALMSHA;
+    const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},body:JSON.stringify(body)});
+    if(r.status===409||r.status===422){$('#vista').innerHTML='<span style="color:var(--bad)">Annar vistaði á undan – endurhlaðið síðuna</span>';return}
+    if(!r.ok)throw new Error('GitHub '+r.status); ALMSHA=(await r.json()).content.sha;
+    $('#vista').textContent='Vistað á GitHub '+new Date().toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit',hour12:false});
+  }catch(e){$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+')</span>'}},2500);
+}
+const almTxt=k=>(ALM.kaflar[k.id]&&ALM.kaflar[k.id].texti!=null)?ALM.kaflar[k.id].texti:k.texti;
+const almGap=t=>(t.match(/⟨[^⟩]*⟩/g)||[]).length;
+function almMeta(){const m=ALM.meta;return {titill:m.titill||`Skólanámskrá ${A.stillingar.skoli} – almennur hluti`,gildir:m.gildir||A.stillingar.skolaar,skolarad:m.skolarad||'',skolanefnd:m.skolanefnd||'',slod:m.slod||''}}
+async function almRender(){
+  const m=$('#main'); if(!ALM){m.innerHTML='Hleð…';await almLoad()}
+  if(!almSel) almSel=ALM_KAFLAR[0].id;
+  const k=ALM_KAFLAR.find(x=>x.id===almSel), t=almTxt(k), M=almMeta(), st=ALM.kaflar[k.id]||{};
+  const tot=ALM_KAFLAR.reduce((a,x)=>a+almGap(almTxt(x)),0), yf=ALM_KAFLAR.filter(x=>(ALM.kaflar[x.id]||{}).yfirfarid).length;
+  let grp='';
+  m.innerHTML=`<h2>Almennur hluti skólanámskrár</h2><p class="lead">Kaflarnir sem aðalnámskrá (kafli 12.1) segir að skólanámskrá skuli innihalda, aðrir en þeir sem eiga heima í starfsáætlun ársins. Drög að texta eru sett inn; lagið þau til og búið svo til heildarskjal. Þessi hluti er vistaður sér og hefur ekki áhrif á aðra hluta tólsins.</p>
+  <div class="bar"><button class="b p" onclick="almDoc()">Búa til heildarskjal</button><span class="muted">${yf} af ${ALM_KAFLAR.length} köflum yfirfarnir · ${tot} reitir ⟨ ⟩ enn til útfyllingar</span></div>
+  <div class="two" style="grid-template-columns:minmax(0,.42fr) minmax(0,1fr)">
+   <div class="panel list" style="padding:10px 12px">${ALM_KAFLAR.map((x,i)=>{const s=ALM.kaflar[x.id]||{},g=almGap(almTxt(x));let h='';if(x.hopur&&grp!==x.hopur){grp=x.hopur;h+=`<div class="muted" style="margin:8px 0 2px;font-size:12px">${esc(x.hopur)}</div>`}
+     return h+`<div style="padding:5px 6px;border-radius:6px;cursor:pointer;${x.id===almSel?'background:var(--accl)':''}" onclick="almSel='${x.id}';almRender()">${s.yfirfarid?'<span class="pill ok">✓</span>':g?`<span class="pill warn">${g}</span>`:'<span class="pill mut">·</span>'} ${esc(x.heiti)}${s.texti!=null?' <span class="muted" style="font-size:11px">(breytt)</span>':''}</div>`}).join('')}
+    <div class="muted" style="margin-top:10px;font-size:12px"><span class="pill ok">✓</span> yfirfarið · <span class="pill warn">n</span> reitir til útfyllingar</div></div>
+   <div class="panel">
+    <h3 style="margin-bottom:2px">${esc(k.heiti)}</h3><div class="muted" style="margin-bottom:8px">Krafa aðalnámskrár: ${esc(k.krafa)}</div>
+    <textarea id="almt" style="min-height:420px;font-size:14px;line-height:1.5" oninput="almSet('${k.id}',this.value)">${esc(t)}</textarea>
+    <div class="muted" style="font-size:12px;margin-top:4px">Auð lína = ný málsgrein · lína sem byrjar á „- “ = punktalisti · „### “ = millifyrirsögn · texti innan ⟨ ⟩ er til útfyllingar og er gulmerktur í skjalinu.</div>
+    <div class="bar" style="margin-top:8px"><label class="chk" style="margin:0"><input type="checkbox" ${st.yfirfarid?'checked':''} onchange="almYf('${k.id}',this.checked)">Kafli yfirfarinn</label>
+     ${st.texti!=null?`<button class="b" onclick="if(confirm('Setja upphaflegu drögin aftur inn í þennan kafla?')){delete ALM.kaflar['${k.id}'].texti;almSave();almRender()}">Endurstilla í drög</button>`:''}</div>
+   </div></div>
+  <details class="panel"><summary style="cursor:pointer;font-weight:600">Forsíða og staðfesting</summary><div class="step">
+   <label>Titill</label><input type="text" style="width:100%" value="${esc(M.titill)}" onchange="almM('titill',this.value)">
+   <div class="bar" style="margin-top:6px"><label>Gildir fyrir <input type="text" value="${esc(M.gildir)}" onchange="almM('gildir',this.value)"></label>
+   <label>Fjallað um í skólaráði <input type="date" value="${esc(M.skolarad)}" onchange="almM('skolarad',this.value)"></label>
+   <label>Staðfest af skólanefnd <input type="date" value="${esc(M.skolanefnd)}" onchange="almM('skolanefnd',this.value)"></label></div>
+   <label>Slóð á greinahluta (birta skólanámskrá)</label><input type="text" style="width:100%" placeholder="https://gummif-hub.github.io/skolanamskra/skolanamskra.html" value="${esc(M.slod)}" onchange="almM('slod',this.value)"></div></details>`;
+}
+function almSet(id,v){ALM.kaflar[id]=ALM.kaflar[id]||{};ALM.kaflar[id].texti=v;almSave()}
+function almYf(id,v){ALM.kaflar[id]=ALM.kaflar[id]||{};ALM.kaflar[id].yfirfarid=v;almSave();almRender()}
+function almM(k,v){ALM.meta[k]=v;almSave()}
+function almMd(t,slod){
+  const e=x=>esc(x).replace(/⟨([^⟩]*)⟩/g,'<mark>⟨$1⟩</mark>');
+  if(slod) t=t.replace(/⟨slóð á birta skólanámskrá⟩/g,slod);
+  return t.split(/\n\s*\n/).map(b=>{const L=b.split('\n').map(x=>x.trim()).filter(Boolean);if(!L.length)return '';
+    let h='',ul=[],p=[];const fl=()=>{if(p.length){h+=`<p>${p.map(e).join(' ')}</p>`;p=[]}if(ul.length){h+=`<ul>${ul.map(x=>`<li>${e(x)}</li>`).join('')}</ul>`;ul=[]}};
+    L.forEach(l=>{if(l.startsWith('### ')){fl();h+=`<h3>${e(l.slice(4))}</h3>`}else if(l.startsWith('- ')){if(p.length){const q=p;p=[];h+=`<p>${q.map(e).join(' ')}</p>`}ul.push(l.slice(2))}else{if(ul.length)fl();p.push(l)}});fl();return h}).join('\n');
+}
+function almHTML(word){
+  const M=almMeta(), d=x=>x?(z=>`${z.getDate()}.${z.getMonth()+1}.${z.getFullYear()}`)(new Date(x+'T12:00')):'';
+  const logo=word?new URL(A.stillingar.merki||'merki.png',location.href).href:(A.stillingar.merki||'merki.png');
+  let n=0, sub=0, toc='', body='';
+  const main=ALM_KAFLAR.filter(k=>!k.hopur), plans=ALM_KAFLAR.filter(k=>k.hopur);
+  main.forEach(k=>{n++;toc+=`<li>${n}. ${esc(k.heiti)}</li>`;body+=`<h2>${n}. ${esc(k.heiti)}</h2>${almMd(almTxt(k),M.slod)}`});
+  if(plans.length){n++;toc+=`<li>${n}. Áætlanir</li>`;body+=`<h2>${n}. Áætlanir</h2>`;plans.forEach(k=>{sub++;toc+=`<li style="margin-left:18px">${n}.${sub} ${esc(k.heiti)}</li>`;body+=`<h2 class="h2s">${n}.${sub} ${esc(k.heiti)}</h2>${almMd(almTxt(k),M.slod)}`})}
+  const gaps=ALM_KAFLAR.reduce((a,k)=>a+almGap(almTxt(k)),0);
+  const css=`body{font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#1d2b2f;line-height:1.5;max-width:780px;margin:0 auto;padding:30px 28px;font-size:11.5pt}
+   .fors{text-align:center;padding:60px 0 40px;border-bottom:2px solid #1f6f78;margin-bottom:24px}.fors img{height:70px}.fors h1{font-size:24pt;margin:24px 0 6px;color:#1f6f78}.fors p{margin:2px 0;color:#5d6b70}
+   h2{font-size:16pt;color:#1f6f78;border-bottom:1px solid #d9e2e4;padding-bottom:3px;margin:28px 0 8px;page-break-after:avoid}h2.h2s{font-size:13.5pt;border:0}h3{font-size:12pt;margin:14px 0 4px;page-break-after:avoid}
+   ul{margin:4px 0 8px}li{margin:2px 0}mark{background:#fff1a8}.toc{list-style:none;padding:0}.toc li{margin:3px 0}
+   .bar{position:sticky;top:0;background:#f3f6f6;border:1px solid #d9e2e4;border-radius:8px;padding:8px 12px;margin-bottom:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:system-ui,sans-serif;font-size:13px}
+   .bar button{border:1px solid #1f6f78;background:#1f6f78;color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}.bar button.s{background:#fff;color:#1f6f78}
+   @media print{.bar{display:none}.fors{page-break-after:always;border:0}body{padding:0}}`;
+  const bar=word?'':`<div class="bar"><button onclick="print()">Prenta / vista sem PDF</button><button class="s" onclick="opener&&opener.almWord()">Sækja Word-skjal</button><button class="s" onclick="opener&&opener.almSaekja()">Sækja HTML</button>${gaps?`<span style="color:#b26a00">${gaps} reitir ⟨ ⟩ eru enn gulmerktir</span>`:''}</div>`;
+  return `<!DOCTYPE html><html lang="is"${word?' xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"':''}><head><meta charset="utf-8"><title>${esc(M.titill)}</title><style>${css}</style></head><body>${bar}
+   <div class="fors"><img src="${logo}" alt="${esc(A.stillingar.skoli)}"><h1>${esc(M.titill)}</h1><p>Gildir fyrir skólaárið ${esc(M.gildir)}</p>${M.skolarad?`<p>Fjallað um í skólaráði ${d(M.skolarad)}</p>`:''}${M.skolanefnd?`<p>Staðfest af skólanefnd ${d(M.skolanefnd)}</p>`:''}</div>
+   <h2 style="border:0">Efnisyfirlit</h2><ul class="toc">${toc}</ul>${body}
+   <p style="margin-top:30px;color:#5d6b70;font-size:9.5pt">Skólanámskrá þessi er unnin samkvæmt 29. gr. laga nr. 91/2008 um grunnskóla og kafla 12 í aðalnámskrá grunnskóla. Greinahluti skólanámskrárinnar${M.slod?`: ${esc(M.slod)}`:' er birtur á vef skólans'}.</p></body></html>`;
+}
+function almDoc(){const w=window.open('','_blank');if(!w){alert('Leyfið sprettiglugga fyrir síðuna.');return}w.document.open();w.document.write(almHTML(false));w.document.close()}
+function almDl(name,data,type){const b=new Blob([data],{type});const x=document.createElement('a');x.href=URL.createObjectURL(b);x.download=name;document.body.appendChild(x);x.click();x.remove()}
+function almWord(){almDl('skolanamskra-almennur-hluti.doc','﻿'+almHTML(true),'application/msword')}
+function almSaekja(){almDl('skolanamskra-almennur-hluti.html',almHTML(false).replace(/<div class="bar">[\s\S]*?<\/div>/,''),'text/html')}
+function render(){const m=$('#main');if(V.tab==='alm'){almRender();return}m.innerHTML=V.tab==='yfirlit'?vYfirlit():V.tab==='forg'?vForg():V.tab==='naa'?vNaa():V.tab==='sk'?vSk():vStill()}
 load();
 </script>
 </body>
