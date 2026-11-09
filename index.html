@@ -61,6 +61,9 @@ button.b.on{background:var(--accl);border-color:var(--acc)}
 .pill.bad{background:var(--badl);color:var(--bad)}
 .pill.warn{background:var(--warnl);color:var(--warn)}
 .pill.mut{background:#eee;color:#666}
+.pill.gl{opacity:.8}
+.ar{font-size:10px;font-weight:700;margin-left:4px;padding:0 4px;border-radius:4px;vertical-align:1px}
+.ar.ny{background:#2e9d46;color:#fff}.ar.gl{background:#c0392b;color:#fff}
 .muted{color:var(--muted)}
 .two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:16px}
 @media(max-width:1000px){.two{grid-template-columns:1fr}}
@@ -201,15 +204,18 @@ function n10Panel(){
    ${rows.map(r=>`<span class="pill ${r.t===100&&r.c?'ok':r.t===100?'warn':'bad'}" style="margin:2px;cursor:pointer" title="Vægi samtals ${r.t}% · forgangsröðun 8.–10. b. ${r.c?'staðfest':'óstaðfest'}" onclick="V.svid='${r.s.id}';V.stig=2;tab('forg')">${esc(r.s.heiti)}: ${r.t}%${r.c?' ✓':''}</span>`).join('')}
    <div class="legend"><span><span class="pill ok">grænt</span> vægi 100% og staðfest</span><span><span class="pill warn">gult</span> vægi í lagi, forgangsröðun óstaðfest</span><span><span class="pill bad">rautt</span> vægi ekki 100%</span></div></div>`;
 }
+const NYTT='2026–2027';
+const ar=n=>n.skolaar===NYTT?'<span class="ar ny" title="Námskrá kennara fyrir '+NYTT+'">26–27</span>':'<span class="ar gl" title="Námskrá kennara frá '+(n.skolaar||'fyrra skólaári')+' – bíður uppfærslu">25–26</span>';
 function naGrid(){
-  let h='';
+  const nN=G.N.filter(n=>n.skolaar===NYTT).length;
+  let h=`<div style="margin:4px 0 8px"><b>${nN} af ${G.N.length}</b> námskrám kennara eru fyrir ${NYTT}. Hinar eru frá fyrra skólaári og bíða uppfærðrar áætlunar.</div>`;
   for(let g=1;g<=10;g++){
     const N=G.N.filter(n=>n.argangur===g); if(!N.length){h+=`<div style="margin:6px 0"><b>${g}. bekkur</b> <span class="pill mut">engin námskrá</span></div>`;continue}
     h+=`<div style="margin:6px 0"><b style="display:inline-block;width:80px">${g}. bekkur</b>`+N.map(n=>{
       const L=A.namsaetlanir.filter(x=>x.nam===n.id); const c=L.some(x=>x.stada==='birt')?'ok':L.some(x=>x.stada==='tilbuin')?'ok':L.length?'warn':'mut';
-      return `<span class="pill ${c}" style="margin:2px;cursor:pointer" title="${L.length} námsáætlun(ir)" onclick="V.aArg=${g};V.aNam='${n.id}';V.aId=null;tab('naa')">${esc(n.heiti)}${L.length?' · '+L.length:''}</span>`}).join('')+`</div>`;
+      return `<span class="pill ${c}${n.skolaar===NYTT?'':' gl'}" style="margin:2px;cursor:pointer" title="${L.length} námsáætlun(ir) · námskrá kennara ${esc(n.skolaar||'')}" onclick="V.aArg=${g};V.aNam='${n.id}';V.aId=null;tab('naa')">${esc(n.heiti)}${L.length?' · '+L.length:''}${ar(n)}</span>`}).join('')+`</div>`;
   }
-  return h+`<div class="legend"><span><span class="pill mut">grá</span> engin áætlun</span><span><span class="pill warn">gul</span> drög</span><span><span class="pill ok">græn</span> tilbúin eða birt</span></div>`;
+  return h+`<div class="legend"><span><span class="pill mut">grá</span> engin áætlun</span><span><span class="pill warn">gul</span> drög</span><span><span class="pill ok">græn</span> tilbúin eða birt</span><span><span class="ar ny">26–27</span> námskrá kennara fyrir ${NYTT}</span><span><span class="ar gl">25–26</span> námskrá frá fyrra ári, bíður uppfærslu</span></div>`;
 }
 /* ---------- Forgangsröðun ---------- */
 function vForg(){
@@ -252,7 +258,7 @@ function setV(sid,f,g,val){const k=`${sid}|${f}|${g}`;A.vaegi[k]=val===''?null:N
 const txt=n=>txtOf(A,n);
 function txtForm(n){const t=txt(n);const f=(k,l,v,rows)=>`<label>${l}</label><textarea style="min-height:${rows}px" onchange="setT('${n.id}','${k}',this.value)">${esc(v)}</textarea>`;
   return `<details class="panel"><summary style="cursor:pointer;font-weight:600">Texti greinarinnar í skólanámskrá ${A.texti[n.id]?'<span class="pill warn">breyttur</span>':''}</summary><div class="step">
-  <div class="muted">Upphaflega úr ${esc(n.heiti)}, ${n.argangur}. bekk (${esc(n.heimild)}). Breytingar hér birtast í vefútgáfu skólanámskrárinnar.</div>
+  <div class="muted">Upphaflega úr ${esc(n.heiti)}, ${n.argangur}. bekk (${esc(n.heimild)}, ${esc(n.skolaar||'')}). Breytingar hér birtast í vefútgáfu skólanámskrárinnar.</div>
   ${f('vidf','Inntak náms (eitt atriði í línu)',t.vidf.join('\n'),90)}${f('kh','Kennsluhættir',t.kh,60)}${f('kf','Kennslufyrirkomulag',t.kf,60)}${f('gogn','Námsgögn (eitt atriði í línu)',t.gogn.join('\n'),70)}${f('mat','Námsmat',t.mat,60)}
   ${A.texti[n.id]?`<button class="b" style="margin-top:8px" onclick="delete A.texti['${n.id}'];save();render()">Endurstilla í upphaflegan texta</button>`:''}</div></details>`}
 function setT(id,k,v){A.texti[id]=A.texti[id]||{};A.texti[id][k]=v;save()}
@@ -262,10 +268,10 @@ function vNaa(){
   if(!V.aNam||!N.find(n=>n.id===V.aNam)) V.aNam=N[0]?N[0].id:null;
   let h=`<h2>Námsáætlanir</h2><p class="lead">Námsáætlun fyrir hvert námstímabil, samkvæmt sniðmáti MMS. Byrjað er á upplýsingum úr námskrá kennara og forgangshæfniviðmiðum árgangsins.</p>
   <div class="bar"><div class="seg">${[1,2,3,4,5,6,7,8,9,10].map(g=>`<button class="${g===V.aArg?'on':''}" onclick="V.aArg=${g};V.aNam=null;V.aId=null;render()">${g}.</button>`).join('')}</div>
-  <select onchange="V.aNam=this.value;V.aId=null;render()">${N.map(n=>`<option value="${n.id}" ${n.id===V.aNam?'selected':''}>${esc(n.heiti)}</option>`).join('')}</select></div>`;
+  <select onchange="V.aNam=this.value;V.aId=null;render()">${N.map(n=>`<option value="${n.id}" ${n.id===V.aNam?'selected':''}>${esc(n.heiti)}${n.skolaar===NYTT?'':' (frá '+esc(n.skolaar||'fyrra ári')+')'}</option>`).join('')}</select></div>`;
   if(!V.aNam) return h+`<div class="panel">Engin námskrá kennara liggur fyrir í ${V.aArg}. bekk.</div>`;
   const n=G.N.find(x=>x.id===V.aNam); const L=A.namsaetlanir.filter(x=>x.nam===n.id).sort((a,b)=>(a.fra||'').localeCompare(b.fra||''));
-  h+=`<div class="panel"><h3>${esc(n.heiti)} · ${n.argangur}. bekkur</h3><div class="list">${L.length?L.map(x=>`<div>${x.id===V.aId?'▸ ':''}<a onclick="V.aId='${x.id}';render()">${esc(x.heiti||'Námstímabil')} ${x.fra?'· '+x.fra+' – '+(x.til||''):''}</a> <span class="pill ${x.stada==='drog'?'warn':'ok'}">${{drog:'drög',tilbuin:'tilbúin',birt:'birt'}[x.stada]}</span></div>`).join(''):'<span class="muted">Engin námsáætlun enn.</span>'}</div>
+  h+=`<div class="panel"><h3>${esc(n.heiti)} · ${n.argangur}. bekkur ${ar(n)}</h3>${n.skolaar===NYTT?'':`<div class="muted" style="margin:-4px 0 6px">Námskrá kennara er frá ${esc(n.skolaar||'fyrra skólaári')}. Uppfærð áætlun fyrir ${NYTT} hefur ekki borist.</div>`}<div class="list">${L.length?L.map(x=>`<div>${x.id===V.aId?'▸ ':''}<a onclick="V.aId='${x.id}';render()">${esc(x.heiti||'Námstímabil')} ${x.fra?'· '+x.fra+' – '+(x.til||''):''}</a> <span class="pill ${x.stada==='drog'?'warn':'ok'}">${{drog:'drög',tilbuin:'tilbúin',birt:'birt'}[x.stada]}</span></div>`).join(''):'<span class="muted">Engin námsáætlun enn.</span>'}</div>
   <div style="margin-top:8px"><button class="b p" onclick="newNa('${n.id}')">+ Ný námsáætlun fyrir námstímabil</button></div></div>${txtForm(n)}`;
   const a=A.namsaetlanir.find(x=>x.id===V.aId);
   if(a) h+=naForm(a,n);
