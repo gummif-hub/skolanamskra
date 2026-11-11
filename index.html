@@ -17,6 +17,12 @@ header nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
 header nav button{border:0;background:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--ink)}
 header nav button.on{background:var(--acc);color:#fff}
 #vista{font-size:12px;color:var(--muted);min-width:120px;text-align:right}
+#notandi{font-size:12.5px}#notandi a{cursor:pointer;color:var(--acc);text-decoration:underline}
+.modal{position:fixed;inset:0;background:rgba(20,40,45,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal.hidden{display:none}
+.mbox{background:#fff;border-radius:14px;padding:22px 26px;width:min(420px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.mbox h3{margin:8px 0 6px}.mbox label{display:block;font-size:12.5px;color:var(--muted);margin:8px 0 2px}.mbox input[type=text],.mbox input[type=password]{width:100%;box-sizing:border-box}
+.saga td{padding:4px 8px;border-bottom:1px solid var(--line);font-size:13px}
 main{padding:18px 20px 60px;max-width:1400px;margin:0 auto}
 h2{font-size:20px;margin:0 0 4px}
 .lead{color:var(--muted);margin:0 0 14px}
@@ -96,8 +102,16 @@ iframe{width:100%;height:75vh;border:1px solid var(--line);border-radius:12px;ba
   <img id="logo" class="hidden" alt="">
   <div><h1>Skólanámskrártól</h1><div class="sub" id="hsub"></div></div>
   <nav id="nav"></nav>
-  <div id="vista"></div>
+  <div style="text-align:right"><div id="notandi"></div><div id="vista"></div></div>
 </header>
+<div id="innskr" class="modal hidden"><div class="mbox">
+  <img src="merki.png" alt="" style="height:44px"><h3>Innskráning starfsfólks</h3>
+  <label>Nafn þitt</label><input type="text" id="inNafn" autocomplete="name" placeholder="t.d. Anna Jónsdóttir">
+  <label>Lykilorð skólans</label><input type="password" id="inLyk" autocomplete="current-password" onkeydown="if(event.key==='Enter')innskra()">
+  <label class="chk" style="margin-top:8px"><input type="checkbox" id="inMuna">Muna mig á þessu tæki <span class="muted">(ekki á sameiginlegum tölvum)</span></label>
+  <div id="inVilla" class="warnbox hidden"></div>
+  <div class="bar" style="margin-top:10px;justify-content:flex-end"><button class="b" onclick="$('#innskr').classList.add('hidden')">Hætta við</button><button class="b p" onclick="innskra()">Skrá inn</button></div>
+</div></div>
 <main id="main">Hleð gögnum…</main>
 <script src="smidi.js"></script>
 <script src="almennur-drog.js"></script>
@@ -112,7 +126,7 @@ let V={tab:'yfirlit',svid:'Íslenska',stig:0,leit:'',aArg:1,aNam:null,aId:null,s
 
 /* ---------- Geymsla: GitHub ---------- */
 const GH={get repo(){const v=localStorage.getItem('gh_repo');if(v)return v;const h=location.hostname;if(h.endsWith('.github.io'))return h.split('.')[0]+'/'+(location.pathname.split('/')[1]||'');return 'gummif-hub/skolanamskra'},
-  get branch(){return localStorage.getItem('gh_branch')||'main'},get token(){return localStorage.getItem('gh_token')||''}};
+  get branch(){return localStorage.getItem('gh_branch')||'main'},get token(){return sessionStorage.getItem('gh_token')||localStorage.getItem('gh_token')||''},get nafn(){return sessionStorage.getItem('gh_nafn')||localStorage.getItem('gh_nafn')||''}};
 const PATH='data/akvardanir.json';
 const b64e=str=>{const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s)};
 const b64d=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
@@ -121,7 +135,7 @@ async function ghGet(){const r=await fetch(`https://api.github.com/repos/${GH.re
   if(txt===null||j.encoding==='none'){const r2=await fetch(j.git_url,{headers:{Authorization:'Bearer '+GH.token}});txt=b64d((await r2.json()).content)}
   return {sha:j.sha,akv:JSON.parse(txt)}}
 async function ghPut(akv){const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${PATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},
-  body:JSON.stringify({message:'Skólanámskrártól: uppfærsla '+new Date().toLocaleString('is-IS'),content:b64e(JSON.stringify(akv,null,1)),sha:SHA,branch:GH.branch})});
+  body:JSON.stringify({message:(GH.nafn?GH.nafn+': ':'')+'Skólanámskrártól – uppfærsla '+new Date().toLocaleString('is-IS'),content:b64e(JSON.stringify(akv,null,1)),sha:SHA,branch:GH.branch})});
   if(r.status===409||r.status===422)return 'conflict'; if(!r.ok)throw new Error('GitHub '+r.status); SHA=(await r.json()).content.sha; return 'ok'}
 /* Sameining breytinga (þriggja leiða): ef tveir vista samtímis eru breytingar beggja sameinaðar */
 const isObj=x=>x!=null&&typeof x==='object'&&!Array.isArray(x);
@@ -158,10 +172,63 @@ async function saekjaNytt(){
   if(ALM&&ALMSHA&&!(ALMPEND)) try{await almSaekja2()}catch(e){}
 }
 setInterval(saekjaNytt,45000); window.addEventListener('focus',saekjaNytt);
+/* ---------- Innskráning: aðgangslykill skólans dulkóðaður með lykilorði ---------- */
+const ADGPATH='data/adgangur.json', PBK=600000;
+const u8=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0)), b64=a=>btoa(String.fromCharCode(...new Uint8Array(a)));
+async function lykill(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:PBK,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function dulkoda(token,pw){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await lykill(pw,salt),new TextEncoder().encode(token));
+  return {v:1,iter:PBK,salt:b64(salt),iv:b64(iv),ct:b64(ct),repo:GH.repo,branch:GH.branch,uppfaert:new Date().toISOString().slice(0,10)}}
+async function afkoda(d,pw){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:u8(d.iv)},await lykill(pw,u8(d.salt)),u8(d.ct));return new TextDecoder().decode(pt)}
+let ADG=null;
+async function adgSaekja(){try{const r=await fetch(ADGPATH+'?t='+Date.now(),{cache:'no-store'});ADG=r.ok?await r.json():null}catch(e){ADG=null}}
+function synaInnskr(){$('#inNafn').value=GH.nafn;$('#inVilla').classList.add('hidden');$('#innskr').classList.remove('hidden');setTimeout(()=>$(GH.nafn?'#inLyk':'#inNafn').focus(),50)}
+async function innskra(){const nafn=$('#inNafn').value.trim(),pw=$('#inLyk').value,muna=$('#inMuna').checked,villa=t=>{$('#inVilla').textContent=t;$('#inVilla').classList.remove('hidden')};
+  if(!nafn)return villa('Skrifaðu nafnið þitt – það fylgir breytingunum sem þú gerir.');
+  if(!ADG)await adgSaekja(); if(!ADG)return villa('Innskráning hefur ekki verið sett upp. Skólastjóri setur hana upp undir Stillingar.');
+  villa('Skrái inn…');
+  let tok;try{tok=await afkoda(ADG,pw)}catch(e){return villa('Rangt lykilorð.')}
+  const st=muna?localStorage:sessionStorage; st.setItem('gh_token',tok); st.setItem('gh_nafn',nafn);
+  if(ADG.repo)localStorage.setItem('gh_repo',ADG.repo); if(ADG.branch)localStorage.setItem('gh_branch',ADG.branch);
+  try{await ghGet()}catch(e){sessionStorage.removeItem('gh_token');localStorage.removeItem('gh_token');return villa('Aðgangslykill skólans virkar ekki lengur ('+e.message+'). Láttu skólastjóra vita.')}
+  location.reload()}
+function utskra(){if((PEND||ALMPEND)&&!confirm('Breytingar eru enn að vistast. Skrá út samt?'))return;['gh_token','gh_nafn'].forEach(k=>{sessionStorage.removeItem(k);localStorage.removeItem(k)});location.reload()}
+function notandi(){$('#notandi').innerHTML=GH.token?`${esc(GH.nafn||'Innskráð(ur)')} · <a onclick="utskra()">Skrá út</a>`:`<a onclick="synaInnskr()">Skrá inn til að vinna</a>`}
+async function setjaUppAdgang(){const tok=$('#adTok').value.trim(),p1=$('#adP1').value,p2=$('#adP2').value;
+  if(!tok.startsWith('github_pat_')&&!tok.startsWith('ghp_'))return alert('Límdu inn GitHub-lykil (byrjar á github_pat_).');
+  if(p1.length<12)return alert('Lykilorðið þarf að vera a.m.k. 12 stafir. Notaðu t.d. þrjú til fjögur orð saman.');
+  if(p1!==p2)return alert('Lykilorðin stemma ekki.');
+  const prev=sessionStorage.getItem('gh_token');sessionStorage.setItem('gh_token',tok);
+  try{await ghGet();const d=await dulkoda(tok,p1);
+    const g=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ADGPATH}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},cache:'no-store'});
+    const body={message:'Innskráning starfsfólks uppfærð',content:b64e(JSON.stringify(d,null,1)),branch:GH.branch}; if(g.ok)body.sha=(await g.json()).sha;
+    const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ADGPATH}`,{method:'PUT',headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('GitHub '+r.status);
+    if(!GH.nafn)sessionStorage.setItem('gh_nafn','Skólastjóri');
+    alert('Innskráning er tilbúin. Starfsfólk skráir sig nú inn með nafni og lykilorði skólans.');location.reload()
+  }catch(e){if(prev)sessionStorage.setItem('gh_token',prev);else sessionStorage.removeItem('gh_token');alert('Mistókst: '+e.message)}}
+/* ---------- Öryggi gagna: afrit af óvistuðum breytingum og útgáfusaga ---------- */
+function afrit(k,obj,base){try{localStorage.setItem(k,JSON.stringify({t:Date.now(),base,d:obj}))}catch(e){}}
+window.addEventListener('beforeunload',e=>{if(PEND||ALMPEND){e.preventDefault();e.returnValue=''}});
+async function saga(path){const r=await fetch(`https://api.github.com/repos/${GH.repo}/commits?path=${path}&sha=${GH.branch}&per_page=40`,{headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+  if(!r.ok)throw new Error('GitHub '+r.status);return (await r.json()).map(c=>({sha:c.sha,dags:c.commit.author.date,msg:c.commit.message.split('\n')[0]}))}
+async function synaSaga(path){const el=$('#saga_'+path.replace(/\W/g,''));el.innerHTML='Sæki…';
+  try{const L=await saga(path);el.innerHTML=`<table class="saga">${L.map((c,i)=>`<tr><td>${new Date(c.dags).toLocaleString('is-IS')}</td><td>${esc(c.msg)}</td><td>${i?`<button class="b" onclick="endurheimta('${path}','${c.sha}')">Endurheimta</button>`:'<span class="muted">núverandi</span>'}</td></tr>`).join('')}</table>`}catch(e){el.textContent='Mistókst: '+e.message}}
+async function endurheimta(path,sha){if(!confirm('Endurheimta þessa útgáfu? Núverandi útgáfa verður áfram í sögunni og hægt að sækja hana aftur.'))return;
+  const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${path}?ref=${sha}`,{headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+  if(!r.ok)return alert('Mistókst: GitHub '+r.status); const old=JSON.parse(b64d((await r.json()).content));
+  if(path===PATH){const x=await ghGet();SHA=x.sha;BASE=JSON.stringify(x.akv);A=old;save()}
+  else{const x=await almGet();ALMSHA=x.sha;ALMBASE=JSON.stringify(x.d);ALM=old;almSave()}
+  alert('Útgáfan hefur verið endurheimt og er að vistast.');render()}
 async function load(){
   try{
     G=await (await fetch('data/grunngogn.json')).json();
-    if(GH.token){const x=await ghGet();A=x.akv;SHA=x.sha;BASE=JSON.stringify(x.akv)}
+    if(GH.token){const x=await ghGet();A=x.akv;SHA=x.sha;BASE=JSON.stringify(x.akv);
+      const sb=localStorage.getItem('akv_stadbundid');
+      if(sb){try{const grunn=await (await fetch('data/akvardanir.json?t='+Date.now(),{cache:'no-store'})).json();A=merge3(grunn,JSON.parse(sb),A);localStorage.removeItem('akv_stadbundid');
+        setTimeout(()=>{save();$('#vista').textContent='Breytingar úr þessum vafra sendar í sameiginlegan gagnagrunn…'},500)}catch(e){}}
+      const ov=localStorage.getItem('akv_ovistad'); if(ov){try{const o=JSON.parse(ov);A=merge3(o.base?JSON.parse(o.base):{},o.d,A);setTimeout(()=>{save();$('#vista').textContent='Óvistaðar breytingar endurheimtar – vista…'},500)}catch(e){}}}
     else{A=await (await fetch('data/akvardanir.json?t='+Date.now(),{cache:'no-store'})).json()}
     const loc=localStorage.getItem('akv_stadbundid'); if(loc&&!GH.token){A=JSON.parse(loc);LOCAL=true}
   }catch(e){
@@ -173,7 +240,7 @@ async function load(){
   G.svid.forEach(s=>s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{v.y=y.heiti;v.f=f.heiti;v.s=s.id}))));
   A.texti=A.texti||{};
   G.N=G.namskrar.map(n=>Object.assign(n,{prim:PRIM.test(n.heiti)}));
-  head(); render();
+  head(); render(); notandi(); adgSaekja().then(()=>{if(!GH.token&&ADG&&!localStorage.getItem('akv_stadbundid'))synaInnskr()});
   if(!GH.token) $('#vista').innerHTML=LOCAL?'<span style="color:var(--warn)">Óvistaðar breytingar í þessum vafra</span>':'Skoðunarhamur';
 }
 function head(){
@@ -186,9 +253,9 @@ function tab(t){V.tab=t;head();render();window.scrollTo(0,0)}
 function save(){
   A.breytt=new Date().toISOString();
   if(!GH.token){localStorage.setItem('akv_stadbundid',JSON.stringify(A));LOCAL=true;$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
-  $('#vista').textContent='Vista á GitHub…';
+  $('#vista').textContent='Vista á GitHub…'; afrit('akv_ovistad',A,BASE);
   clearTimeout(timer); timer=setTimeout(async()=>{
-    try{const r=await vistaGH(); PEND=false;
+    try{const r=await vistaGH(); PEND=false; localStorage.removeItem('akv_ovistad');
       $('#vista').textContent=(r==='merged'?'Vistað og sameinað breytingum annarra ':'Vistað á GitHub ')+klst();
       if(r==='merged'&&!busy()&&V.tab!=='alm') render();
     }catch(e){PEND=false;$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+') – breytingar eru enn í þessum glugga</span>'}
@@ -417,13 +484,19 @@ function vStill(){
   <div class="step"><h4>Merki skólans</h4>${s.merki?`<img src="${s.merki}" style="height:60px;display:block;margin-bottom:6px" alt="">`:'<span class="muted">Ekkert merki valið.</span>'}<br><input type="file" accept="image/*" onchange="logo(this)"> ${s.merki?'<button class="b" onclick="A.stillingar.merki=null;save();head();render()">Fjarlægja</button>':''}</div>
   <div class="step"><h4>Námsmat og matskvarði (birt í skólanámskrá)</h4><textarea style="min-height:110px" onchange="A.stillingar.namsmat=this.value;save()">${esc(s.namsmat)}</textarea></div>
   <div class="step"><h4>Námsmat 10. bekkjar 2026–2027</h4><label class="chk"><input type="checkbox" ${s.fyrirvari?'checked':''} onchange="A.stillingar.fyrirvari=this.checked;save()">Birta fyrirvara um að lýsingin byggi á drögum að ákvæði til bráðabirgða</label><div class="muted">Takið hakið af þegar endanlegt ákvæði hefur verið birt.</div></div>
-  <div class="step"><h4>Vistun á GitHub</h4>
-   <div class="muted">Án lykils er tólið í skoðunarham og breytingar vistast aðeins í þessum vafra. Með lykli vistast breytingar beint í <b>${esc(GH.repo)}</b> og allir sjá þær. Hver vistun er útgáfa í sögu GitHub og þaðan má endurheimta eldri útgáfur.</div>
-   <label>GitHub-lykill (fine-grained token með „Contents: Read and write“ fyrir ${esc(GH.repo)})</label>
-   <div class="bar"><input type="password" id="tok" style="flex:1" placeholder="github_pat_…" value="${GH.token?'••••••••':''}"><button class="b p" onclick="setTok()">Vista lykil</button>${GH.token?'<button class="b" onclick="localStorage.removeItem(\'gh_token\');location.reload()">Skrá út</button>':''}</div>
-   <div class="muted">Lykillinn er geymdur aðeins í þessum vafra. Búinn til á github.com → Settings → Developer settings → Fine-grained tokens.</div>
-   ${LOCAL?`<div class="warnbox">Óvistaðar breytingar eru í þessum vafra. ${GH.token?'':'Settu inn lykil til að senda þær á GitHub.'} <button class="b" onclick="pushLocal()">${GH.token?'Senda breytingar á GitHub':'Sækja sem skrá'}</button> <button class="b" onclick="if(confirm('Henda staðbundnum breytingum?')){localStorage.removeItem('akv_stadbundid');location.reload()}">Henda</button></div>`:''}
-   <details style="margin-top:6px"><summary class="muted" style="cursor:pointer">Ítarlegt</summary><div class="bar" style="margin-top:6px"><label>Geymsla <input type="text" value="${esc(GH.repo)}" onchange="localStorage.setItem('gh_repo',this.value)"></label><label>Grein <input type="text" value="${esc(GH.branch)}" style="width:90px" onchange="localStorage.setItem('gh_branch',this.value)"></label></div></details></div>
+  <div class="step"><h4>Innskráning og vistun</h4>
+   ${GH.token?`<div>Innskráð(ur) sem <b>${esc(GH.nafn||'–')}</b>. Allar breytingar vistast sjálfkrafa í sameiginlegan gagnagrunn skólans (${esc(GH.repo)}) og nafnið þitt fylgir hverri vistun. <button class="b" onclick="utskra()">Skrá út</button></div>`
+     :`<div>Þú ert ekki skráð(ur) inn og tólið er í skoðunarham. <button class="b p" onclick="synaInnskr()">Skrá inn</button></div>`}
+   ${LOCAL?`<div class="warnbox">Breytingar sem gerðar voru án innskráningar eru geymdar í þessum vafra. ${GH.token?'':'Skráðu þig inn til að senda þær í sameiginlega gagnagrunninn.'} <button class="b" onclick="pushLocal()">${GH.token?'Senda breytingar':'Sækja sem skrá'}</button> <button class="b" onclick="if(confirm('Henda staðbundnum breytingum?')){localStorage.removeItem('akv_stadbundid');location.reload()}">Henda</button></div>`:''}</div>
+  ${GH.token?`<div class="step"><h4>Útgáfusaga – endurheimta eldri útgáfu</h4><div class="muted">Hver vistun geymist sem útgáfa. Ef eitthvað glatast eða er breytt fyrir mistök má sækja eldri útgáfu.</div>
+   <div class="bar" style="margin-top:6px"><button class="b" onclick="synaSaga('data/akvardanir.json')">Forgangsröðun, vægi og námsáætlanir</button><button class="b" onclick="synaSaga('data/almennur.json')">Almennur hluti</button></div>
+   <div id="saga_dataakvardanirjson"></div><div id="saga_dataalmennurjson"></div></div>`:''}
+  <details class="step"><summary style="cursor:pointer"><b>Uppsetning innskráningar (skólastjóri)</b></summary>
+   <div class="muted" style="margin:6px 0">Skólinn á einn aðgangslykil að GitHub. Hann er dulkóðaður með lykilorði skólans (AES-256, PBKDF2 með ${PBK.toLocaleString('is-IS')} umferðum) og aðeins dulkóðuð útgáfa er geymd í geymslunni. Starfsfólk þarf aðeins nafn og lykilorð. Til að skipta um lykilorð eða endurnýja lykilinn (t.d. árlega) er þetta gert aftur. ${ADG?`Síðast uppfært ${esc(ADG.uppfaert||'')}.`:'<b>Ekki enn sett upp.</b>'}</div>
+   <label>GitHub-lykill (fine-grained token, aðeins aðgangur að ${esc(GH.repo)}, „Contents: Read and write“)</label><input type="password" id="adTok" style="width:100%" placeholder="github_pat_…">
+   <div class="bar" style="margin-top:6px"><input type="password" id="adP1" placeholder="Lykilorð skólans (a.m.k. 12 stafir)" style="flex:1"><input type="password" id="adP2" placeholder="Endurtaka lykilorð" style="flex:1"></div>
+   <div style="margin-top:6px"><button class="b p" onclick="setjaUppAdgang()">Vista innskráningu</button></div>
+   <div class="bar" style="margin-top:8px"><label>Geymsla <input type="text" value="${esc(GH.repo)}" onchange="localStorage.setItem('gh_repo',this.value)"></label><label>Grein <input type="text" value="${esc(GH.branch)}" style="width:90px" onchange="localStorage.setItem('gh_branch',this.value)"></label></div></details>
   <div class="step"><h4>Afrit</h4><button class="b" onclick="exp()">Sækja allar ákvarðanir (JSON)</button></div>
   <div class="step"><h4>Um gögnin</h4><div class="muted">Engar upplýsingar um nemendur eru í tólinu. Grunngögn útbúin ${esc(G.utgafa)} úr: ${G.heimildir.map(esc).join(' · ')}. Tillaga að forgangsröðun var búin til úr textasamanburði námskráa kennara við hæfniviðmið og þarf staðfestingu.</div></div></div>`;
 }
@@ -449,19 +522,21 @@ async function almLoad(){
     else{const r=await fetch(ALMPATH+'?t='+Date.now(),{cache:'no-store'});ALM=r.ok?await r.json():{meta:{},kaflar:{}}}
   }catch(e){ALM={meta:{},kaflar:{}}}
   const loc=localStorage.getItem(ALMLOC); if(loc&&!GH.token) ALM=JSON.parse(loc);
+  const sb=GH.token&&localStorage.getItem(ALMLOC); if(sb){try{const grunn=await (await fetch(ALMPATH+'?t='+Date.now(),{cache:'no-store'})).json();ALM=merge3(grunn,JSON.parse(sb),ALM);localStorage.removeItem(ALMLOC);setTimeout(almSave,500)}catch(e){}}
+  const ov=GH.token&&localStorage.getItem('alm_ovistad'); if(ov){try{const o=JSON.parse(ov);ALM=merge3(o.base?JSON.parse(o.base):{},o.d,ALM);setTimeout(almSave,500)}catch(e){}}
   ALM.meta=ALM.meta||{}; ALM.kaflar=ALM.kaflar||{};
 }
 function almSave(){
   ALM.breytt=new Date().toISOString();
   if(!GH.token){localStorage.setItem(ALMLOC,JSON.stringify(ALM));$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
-  $('#vista').textContent='Vista á GitHub…'; clearTimeout(almTimer);
+  $('#vista').textContent='Vista á GitHub…'; afrit('alm_ovistad',ALM,ALMBASE); clearTimeout(almTimer);
   almTimer=setTimeout(async()=>{try{let merged=false;
     for(let i=0;i<4;i++){
       const send=JSON.parse(JSON.stringify(ALM));
-      const body={message:'Almennur hluti skólanámskrár: uppfærsla',content:b64e(JSON.stringify(send,null,1)),branch:GH.branch}; if(ALMSHA) body.sha=ALMSHA;
+      const body={message:(GH.nafn?GH.nafn+': ':'')+'Almennur hluti skólanámskrár – uppfærsla',content:b64e(JSON.stringify(send,null,1)),branch:GH.branch}; if(ALMSHA) body.sha=ALMSHA;
       const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},body:JSON.stringify(body)});
       if(r.status===409||r.status===422){const x=await almGet();ALM=merge3(ALMBASE?JSON.parse(ALMBASE):{},ALM,x.d);ALMSHA=x.sha;merged=true;continue}
-      if(!r.ok)throw new Error('GitHub '+r.status); ALMSHA=(await r.json()).content.sha; ALMBASE=JSON.stringify(send); ALMPEND=false;
+      if(!r.ok)throw new Error('GitHub '+r.status); ALMSHA=(await r.json()).content.sha; ALMBASE=JSON.stringify(send); ALMPEND=false; localStorage.removeItem('alm_ovistad');
       $('#vista').textContent=(merged?'Vistað og sameinað breytingum annarra ':'Vistað á GitHub ')+klst();
       if(merged&&!busy()) almRender(); return}
     throw new Error('of margar samtímavistanir');
