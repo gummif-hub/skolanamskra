@@ -123,10 +123,45 @@ async function ghGet(){const r=await fetch(`https://api.github.com/repos/${GH.re
 async function ghPut(akv){const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${PATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},
   body:JSON.stringify({message:'Skólanámskrártól: uppfærsla '+new Date().toLocaleString('is-IS'),content:b64e(JSON.stringify(akv,null,1)),sha:SHA,branch:GH.branch})});
   if(r.status===409||r.status===422)return 'conflict'; if(!r.ok)throw new Error('GitHub '+r.status); SHA=(await r.json()).content.sha; return 'ok'}
+/* Sameining breytinga (þriggja leiða): ef tveir vista samtímis eru breytingar beggja sameinaðar */
+const isObj=x=>x!=null&&typeof x==='object'&&!Array.isArray(x);
+const jeq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const idArr=x=>Array.isArray(x)&&x.every(o=>isObj(o)&&o.id!=null);
+const primArr=x=>Array.isArray(x)&&x.every(o=>o==null||typeof o!=='object');
+function merge3(b,l,r){
+  if(jeq(l,b))return r; if(jeq(r,b)||jeq(l,r))return l;
+  if(isObj(l)&&isObj(r)){const B=isObj(b)?b:{},o={};new Set([...Object.keys(r),...Object.keys(l)]).forEach(k=>{const v=merge3(B[k],l[k],r[k]);if(v!==undefined)o[k]=v});return o}
+  if(idArr(l)&&idArr(r)){const m=a=>Object.fromEntries((idArr(a)?a:[]).map(o=>[o.id,o]));const B=m(b),L=m(l),R=m(r);
+    const ids=[...r.map(o=>o.id),...l.map(o=>o.id).filter(i=>!(i in R))];const o=[];ids.forEach(i=>{const v=merge3(B[i],L[i],R[i]);if(v!==undefined)o.push(v)});return o}
+  if(primArr(l)&&primArr(r)){const B=new Set(Array.isArray(b)?b:[]),Ls=new Set(l);return [...r.filter(x=>!(B.has(x)&&!Ls.has(x))),...l.filter(x=>!B.has(x)&&!r.includes(x))]}
+  return l;
+}
+let BASE=null, PEND=false, ALMPEND=false;
+const busy=()=>{const e=document.activeElement;return e&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.tagName)};
+const klst=()=>new Date().toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit',hour12:false});
+async function vistaGH(){
+  for(let i=0;i<4;i++){
+    const send=JSON.parse(JSON.stringify(A)); const r=await ghPut(send);
+    if(r==='ok'){BASE=JSON.stringify(send);return i?'merged':'ok'}
+    const x=await ghGet(); A=merge3(BASE?JSON.parse(BASE):{},A,x.akv); SHA=x.sha;
+  }
+  throw new Error('of margar samtímavistanir');
+}
+async function saekjaNytt(){
+  if(!GH.token||!A||PEND)return;
+  try{const x=await ghGet(); if(x.sha===SHA)return;
+    A=merge3(BASE?JSON.parse(BASE):{},A,x.akv); SHA=x.sha; BASE=JSON.stringify(x.akv);
+    if(!jeq(A,x.akv)) save();
+    $('#vista').textContent='Uppfært með breytingum annarra '+klst();
+    if(!busy()&&V.tab!=='alm') render();
+  }catch(e){}
+  if(ALM&&ALMSHA&&!(ALMPEND)) try{await almSaekja2()}catch(e){}
+}
+setInterval(saekjaNytt,45000); window.addEventListener('focus',saekjaNytt);
 async function load(){
   try{
     G=await (await fetch('data/grunngogn.json')).json();
-    if(GH.token){const x=await ghGet();A=x.akv;SHA=x.sha}
+    if(GH.token){const x=await ghGet();A=x.akv;SHA=x.sha;BASE=JSON.stringify(x.akv)}
     else{A=await (await fetch('data/akvardanir.json?t='+Date.now(),{cache:'no-store'})).json()}
     const loc=localStorage.getItem('akv_stadbundid'); if(loc&&!GH.token){A=JSON.parse(loc);LOCAL=true}
   }catch(e){
@@ -153,11 +188,11 @@ function save(){
   if(!GH.token){localStorage.setItem('akv_stadbundid',JSON.stringify(A));LOCAL=true;$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
   $('#vista').textContent='Vista á GitHub…';
   clearTimeout(timer); timer=setTimeout(async()=>{
-    try{const r=await ghPut(A);
-      if(r==='conflict'){$('#vista').innerHTML='<span style="color:var(--bad)">Annar vistaði á undan – endurhlaðið síðuna</span>';return}
-      $('#vista').textContent='Vistað á GitHub '+new Date().toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit',hour12:false});
-    }catch(e){$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+')</span>'}
-  },2500);
+    try{const r=await vistaGH(); PEND=false;
+      $('#vista').textContent=(r==='merged'?'Vistað og sameinað breytingum annarra ':'Vistað á GitHub ')+klst();
+      if(r==='merged'&&!busy()&&V.tab!=='alm') render();
+    }catch(e){PEND=false;$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+') – breytingar eru enn í þessum glugga</span>'}
+  },2500); PEND=true;
 }
 /* ---------- hjálparföll ---------- */
 const allV=()=>{const o=[];G.svid.forEach(s=>s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>o.push(v)))));return o};
@@ -400,13 +435,17 @@ async function setTok(){const v=$('#tok').value.trim();if(!v||v.startsWith('•�
 async function pushLocal(){if(!GH.token){exp();return}try{const x=await ghGet();SHA=x.sha;const r=await ghPut(A);if(r!=='ok')throw new Error('árekstur');localStorage.removeItem('akv_stadbundid');location.reload()}catch(e){alert('Mistókst: '+e.message)}}
 function exp(){const b=new Blob([JSON.stringify(A,null,1)],{type:'application/json'});const x=document.createElement('a');x.href=URL.createObjectURL(b);x.download='akvardanir.json';x.click()}
 /* ---------- Almennur hluti (sér gögn: data/almennur.json) ---------- */
-let ALM=null, ALMSHA=null, almTimer=null, almSel=null;
+let ALM=null, ALMSHA=null, almTimer=null, almSel=null, ALMBASE=null;
+async function almGet(){const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+  if(r.status===404)return {sha:null,d:{meta:{},kaflar:{}}}; if(!r.ok)throw new Error('GitHub '+r.status); const j=await r.json(); return {sha:j.sha,d:JSON.parse(b64d(j.content))}}
+async function almSaekja2(){const x=await almGet(); if(x.sha===ALMSHA)return; ALM=merge3(ALMBASE?JSON.parse(ALMBASE):{},ALM,x.d); ALMSHA=x.sha; ALMBASE=JSON.stringify(x.d); if(!jeq(ALM,x.d))almSave(); if(V.tab==='alm'&&!busy()) almRender()}
 const ALMPATH='data/almennur.json', ALMLOC='alm_stadbundid';
 async function almLoad(){
   if(ALM) return;
   try{
     if(GH.token){const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},cache:'no-store'});
-      if(r.status===404){ALM={meta:{},kaflar:{}};ALMSHA=null}else{if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();ALM=JSON.parse(b64d(j.content));ALMSHA=j.sha}}
+      if(r.status===404){ALM={meta:{},kaflar:{}};ALMSHA=null}else{if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();ALM=JSON.parse(b64d(j.content));ALMSHA=j.sha}
+      ALMBASE=JSON.stringify(ALM)}
     else{const r=await fetch(ALMPATH+'?t='+Date.now(),{cache:'no-store'});ALM=r.ok?await r.json():{meta:{},kaflar:{}}}
   }catch(e){ALM={meta:{},kaflar:{}}}
   const loc=localStorage.getItem(ALMLOC); if(loc&&!GH.token) ALM=JSON.parse(loc);
@@ -416,13 +455,17 @@ function almSave(){
   ALM.breytt=new Date().toISOString();
   if(!GH.token){localStorage.setItem(ALMLOC,JSON.stringify(ALM));$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
   $('#vista').textContent='Vista á GitHub…'; clearTimeout(almTimer);
-  almTimer=setTimeout(async()=>{try{
-    const body={message:'Almennur hluti skólanámskrár: uppfærsla',content:b64e(JSON.stringify(ALM,null,1)),branch:GH.branch}; if(ALMSHA) body.sha=ALMSHA;
-    const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},body:JSON.stringify(body)});
-    if(r.status===409||r.status===422){$('#vista').innerHTML='<span style="color:var(--bad)">Annar vistaði á undan – endurhlaðið síðuna</span>';return}
-    if(!r.ok)throw new Error('GitHub '+r.status); ALMSHA=(await r.json()).content.sha;
-    $('#vista').textContent='Vistað á GitHub '+new Date().toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit',hour12:false});
-  }catch(e){$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+')</span>'}},2500);
+  almTimer=setTimeout(async()=>{try{let merged=false;
+    for(let i=0;i<4;i++){
+      const send=JSON.parse(JSON.stringify(ALM));
+      const body={message:'Almennur hluti skólanámskrár: uppfærsla',content:b64e(JSON.stringify(send,null,1)),branch:GH.branch}; if(ALMSHA) body.sha=ALMSHA;
+      const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${ALMPATH}`,{method:'PUT',headers:{Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'},body:JSON.stringify(body)});
+      if(r.status===409||r.status===422){const x=await almGet();ALM=merge3(ALMBASE?JSON.parse(ALMBASE):{},ALM,x.d);ALMSHA=x.sha;merged=true;continue}
+      if(!r.ok)throw new Error('GitHub '+r.status); ALMSHA=(await r.json()).content.sha; ALMBASE=JSON.stringify(send); ALMPEND=false;
+      $('#vista').textContent=(merged?'Vistað og sameinað breytingum annarra ':'Vistað á GitHub ')+klst();
+      if(merged&&!busy()) almRender(); return}
+    throw new Error('of margar samtímavistanir');
+  }catch(e){$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+') – breytingar eru enn í þessum glugga</span>'}},2500); ALMPEND=true;
 }
 const almTxt=k=>(ALM.kaflar[k.id]&&ALM.kaflar[k.id].texti!=null)?ALM.kaflar[k.id].texti:k.texti;
 const almGap=t=>(t.match(/⟨[^⟩]*⟩/g)||[]).length;
@@ -498,18 +541,22 @@ function grStat(){
 function naLbl(a){const n=G.N.find(x=>x.id===a.nam);return `${n?n.heiti:''}${a.heiti?': '+a.heiti:''}`}
 function vGrein(){
   const {NA,C}=grStat(); const S=G.svid.filter(s=>s.flokkar.length);
-  const tegund=V.gTeg||'F';
+  const tegund=V.gTeg||'FS';
   const inF=(v,g)=>{const m=fg(v.id,g);return tegund==='F'?m==='F':m==='F'||m==='S'};
   let h=`<h2>Greining á vali hæfniviðmiða</h2><p class="lead">Innanhússyfirlit: hvaða hæfniviðmið úr forgangsröðun hafa verið valin í námsáætlunum, hversu oft, og hver hafa ekki verið valin í neinni áætlun. Þetta birtist ekki í skólanámskránni.</p>
   <div class="bar"><span class="muted">Telja áætlanir:</span><div class="seg">${[['allar','Allar'],['tilbuin','Tilbúnar og birtar'],['birt','Aðeins birtar']].map(([k,l])=>`<button class="${(V.gSt||'allar')===k?'on':''}" onclick="V.gSt='${k}';render()">${l}</button>`).join('')}</div>
    <span class="muted" style="margin-left:10px">Viðmið:</span><div class="seg">${[['F','Forgangsviðmið (F)'],['FS','F og stuðningsviðmið (S)']].map(([k,l])=>`<button class="${tegund===k?'on':''}" onclick="V.gTeg='${k}';render()">${l}</button>`).join('')}</div></div>`;
-  if(!NA.length) h+=`<div class="warnbox">Engar námsáætlanir í þessu vali enn. Yfirlitið fyllist eftir því sem námsáætlanir eru gerðar.</div>`;
+  const tom=NA.filter(a=>!(a.vidmid||[]).length);
+  h+=NA.length?`<div class="muted" style="margin:6px 0">Talið úr <b>${NA.length}</b> námsáætlun${NA.length>1?'um':''} (${NA.map(a=>esc(`${a.argangur}. b. ${naLbl(a)} – ${(a.vidmid||[]).length} viðmið`)).join(' · ')}).</div>`
+    :`<div class="warnbox">Engar námsáætlanir í þessu vali${A.namsaetlanir.length?` (alls ${A.namsaetlanir.length} áætlanir, en engin með þessa stöðu)`:''}. Yfirlitið fyllist eftir því sem námsáætlanir eru gerðar.</div>`;
+  if(tom.length) h+=`<div class="warnbox">Í ${tom.length} áætlun${tom.length>1?'um':''} hafa engin hæfniviðmið verið valin: ${tom.map(a=>`<a onclick="V.aArg=${a.argangur};V.aNam='${a.nam}';V.aId='${a.id}';tab('naa')">${esc(a.argangur+'. b. '+naLbl(a))}</a>`).join(', ')}. Hakið við hæfniviðmið í skrefi 2 svo þau komi fram hér.</div>`;
   // þekjutafla
   h+=`<div class="panel"><h3>Þekja eftir greinasviði og árgangi</h3><p class="muted" style="margin-top:0">Hlutfall ${tegund==='F'?'forgangsviðmiða':'merktra viðmiða'} árgangsins sem valin hafa verið í a.m.k. einni námsáætlun. Smellið á reit til að sjá sundurliðun.</p>
   <table class="cov"><tr><th></th>${[1,2,3,4,5,6,7,8,9,10].map(g=>`<th>${g}.</th>`).join('')}</tr>`;
   S.forEach(s=>{h+=`<tr><td class="n">${esc(s.heiti)}</td>`;for(let g=1;g<=10;g++){let t=0,k=0;s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{if(v.stig===stigOf(g)&&inF(v,g)){t++;if(C[v.id+'@'+g])k++}})));
-    if(!t){h+=`<td class="muted">–</td>`;continue}const p=k/t;const bg=k===0?'#fbe3e0':p<.5?'#fdf0d5':p<1?'#e3f1e6':'#bfe3c8';
-    h+=`<td class="c" style="background:${bg}" title="${k} af ${t}" onclick="V.gSvid='${s.id}';V.gArg=${g};render()">${Math.round(p*100)}%<div class="muted" style="font-size:10.5px">${k}/${t}</div></td>`}h+=`</tr>`});
+    let u=0;s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{if(v.stig===stigOf(g)&&!inF(v,g)&&C[v.id+'@'+g])u++})));
+    if(!t){h+=u?`<td class="c" style="background:#eef4f5" title="${u} valin utan forgangsröðunar" onclick="V.gSvid='${s.id}';V.gArg=${g};render()">–<div class="muted" style="font-size:10.5px">+${u} utan</div></td>`:`<td class="muted">–</td>`;continue}const p=k/t;const bg=k===0?'#fbe3e0':p<.5?'#fdf0d5':p<1?'#e3f1e6':'#bfe3c8';
+    h+=`<td class="c" style="background:${bg}" title="${k} af ${t}${u?' · '+u+' valin utan forgangsröðunar':''}" onclick="V.gSvid='${s.id}';V.gArg=${g};render()">${Math.round(p*100)}%<div class="muted" style="font-size:10.5px">${k}/${t}${u?' +'+u:''}</div></td>`}h+=`</tr>`});
   h+=`</table></div>`;
   // sundurliðun
   const sid=V.gSvid||S[0].id, g=V.gArg||1, s=G.svid.find(x=>x.id===sid);
