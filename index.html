@@ -62,6 +62,14 @@ button.b.on{background:var(--accl);border-color:var(--acc)}
 .pill.warn{background:var(--warnl);color:var(--warn)}
 .pill.mut{background:#eee;color:#666}
 .pill.gl{opacity:.8}
+.auka{background:#f6f9fa;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:8px 0}
+.auka .hd{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.cov{border-collapse:collapse;font-size:13px}.cov th,.cov td{border:1px solid var(--line);padding:4px 6px;text-align:center}.cov td.n{text-align:left;white-space:nowrap}
+.cov td.c{cursor:pointer;min-width:52px}.cov td.c:hover{outline:2px solid var(--acc)}
+.vt{width:100%;font-size:13px;border-collapse:collapse}.vt td,.vt th{border-bottom:1px solid var(--line);padding:5px 6px;vertical-align:top;text-align:left}
+.vt tr.fl td{background:#eef4f5;font-weight:600}.vt td.k{width:46px;text-align:center;font-weight:700}
+.vt tr.no td.k{color:var(--bad)}.vt tr.no{background:#fff6f5}
+.kpi{display:inline-block;margin:0 18px 6px 0}.kpi b{font-size:20px;display:block}
 .ar{font-size:10px;font-weight:700;margin-left:4px;padding:0 4px;border-radius:4px;vertical-align:1px}
 .ar.ny{background:#2e9d46;color:#fff}.ar.gl{background:#c0392b;color:#fff}
 .muted{color:var(--muted)}
@@ -136,7 +144,7 @@ async function load(){
 function head(){
   const s=A.stillingar; $('#hsub').textContent=`${s.skoli} · ${s.skolaar}`;
   if(s.merki){$('#logo').src=s.merki;$('#logo').classList.remove('hidden')} else $('#logo').classList.add('hidden');
-  const T=[['yfirlit','Heildarmynd'],['forg','Forgangsröðun'],['naa','Námsáætlanir'],['sk','Skólanámskrá'],['alm','Almennur hluti'],['still','Stillingar']];
+  const T=[['yfirlit','Heildarmynd'],['forg','Forgangsröðun'],['naa','Námsáætlanir'],['sk','Skólanámskrá'],['grein','Greining'],['alm','Almennur hluti'],['still','Stillingar']];
   $('#nav').innerHTML=T.map(([k,l])=>`<button class="${V.tab===k?'on':''}" onclick="tab('${k}')">${l}</button>`).join('');
 }
 function tab(t){V.tab=t;head();render();window.scrollTo(0,0)}
@@ -278,9 +286,25 @@ function vNaa(){
   return h;
 }
 function newNa(nid){const n0=G.N.find(x=>x.id===nid);const n=Object.assign({},n0,txt(n0));const id='na'+Date.now().toString(36);
-  A.namsaetlanir.push({id,nam:nid,argangur:n.argangur,heiti:'',fra:'',til:'',stundir:'',inntak:(n.vidf||[]).join('; '),flokkar:[],vidmid:[],verkefni:n.kh||'',heimanam:'',gogn:(n.gogn||[]).join('; '),matsadf:n.mat||'',lokamat:[{heiti:'',skil:''}],stada:'drog'});
+  A.namsaetlanir.push({id,nam:nid,argangur:n.argangur,heiti:'',fra:'',til:'',stundir:'',inntak:(n.vidf||[]).join('; '),flokkar:[],vidmid:[],aukasvid:[],verkefni:n.kh||'',heimanam:'',gogn:(n.gogn||[]).join('; '),matsadf:n.mat||'',lokamat:[{heiti:'',skil:''}],stada:'drog'});
   V.aId=id;save();render()}
 function naSvid(n){return (n.svid||[]).map(id=>G.svid.find(s=>s.id===id)).filter(Boolean)}
+function aukaForm(a,n){
+  const g=n.argangur, eigin=(n.svid||[]), st=stigOf(g);
+  const opt=G.svid.filter(s=>s.flokkar.length&&!eigin.includes(s.id)&&!a.aukasvid.includes(s.id));
+  let h=`<label>Samþætting: hæfniviðmið úr öðrum greinum eða lykilhæfni</label>`;
+  a.aukasvid.forEach(sid=>{const s=G.svid.find(x=>x.id===sid);if(!s)return;const all=!!(V.aukaAll||{})[a.id+sid];
+    let L='';s.flokkar.forEach(f=>{const vs=[];f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{if(v.stig!==st)return;const m=fg(v.id,g);if(m||all||a.vidmid.includes(v.id))vs.push([v,m])}));
+      vs.sort((x,y)=>(x[1]||'Z')<(y[1]||'Z')?-1:1);
+      if(vs.length)L+=`<div class="muted" style="margin-top:4px">${esc(f.heiti)}</div>`+vs.map(([v,m])=>`<label class="chk"><input type="checkbox" ${a.vidmid.includes(v.id)?'checked':''} onchange="tgl('${a.id}','vidmid','${v.id}')"><span class="pill ${m==='F'?'ok':m==='S'?'mut':'warn'}" title="${m==='F'?'Forgangshæfniviðmið':m==='S'?'Stuðningshæfniviðmið':'Ekki í forgangsröðun '+g+'. bekkjar'}">${m||'–'}</span> <b>${esc(v.y)}:</b> ${esc(v.texti)}</label>`).join('')});
+    h+=`<div class="auka"><div class="hd"><span>${esc(s.heiti)} <span class="muted" style="font-weight:400">(${a.vidmid.filter(id=>vSid(id)===sid).length} valin)</span></span><span><label class="chk" style="display:inline;font-weight:400;font-size:12px"><input type="checkbox" ${all?'checked':''} onchange="V.aukaAll=V.aukaAll||{};V.aukaAll['${a.id}${sid}']=this.checked;render()">sýna einnig viðmið utan forgangsröðunar</label> <button class="b" onclick="aukaDel('${a.id}','${sid}')">Fjarlægja</button></span></div>${L||'<span class="muted">Engin viðmið merkt fyrir '+g+'. bekk í forgangsröðun – hakið við „sýna einnig viðmið utan forgangsröðunar“.</span>'}</div>`});
+  h+=`<div class="bar" style="margin-top:4px"><select id="auka_${a.id}"><option value="">– veljið grein –</option>${opt.map(s=>`<option value="${s.id}">${esc(s.heiti)}</option>`).join('')}</select><button class="b" onclick="aukaAdd('${a.id}')">+ Bæta við grein</button></div>`;
+  return h;
+}
+let VSID=null;
+function vSid(id){if(!VSID){VSID={};allV().forEach(v=>VSID[v.id]=v.s)}return VSID[id]}
+function aukaAdd(id){const sel=$('#auka_'+id);if(!sel.value)return;const a=A.namsaetlanir.find(x=>x.id===id);a.aukasvid=a.aukasvid||[];a.aukasvid.push(sel.value);save();render()}
+function aukaDel(id,sid){const a=A.namsaetlanir.find(x=>x.id===id);const k=a.vidmid.filter(v=>vSid(v)===sid).length;if(k&&!confirm('Fjarlægja greinina og '+k+' valin hæfniviðmið úr henni?'))return;a.aukasvid=a.aukasvid.filter(x=>x!==sid);a.vidmid=a.vidmid.filter(v=>vSid(v)!==sid);save();render()}
 function naForm(a,n){
   const S=naSvid(n), g=n.argangur;
   const upd=`onchange="updNa('${a.id}',this)"`;
@@ -289,6 +313,8 @@ function naForm(a,n){
     const vs=[];f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{const m=fg(v.id,g);if(v.stig===stigOf(g)&&m)vs.push([v,m])}));
     vs.sort((x,y)=>x[1]<y[1]?-1:1);
     if(vs.length) vm+=`<div class="muted" style="margin-top:6px">${esc(f.heiti)}</div>`+vs.map(([v,m])=>`<label class="chk"><input type="checkbox" ${a.vidmid.includes(v.id)?'checked':''} onchange="tgl('${a.id}','vidmid','${v.id}')"><span class="pill ${m==='F'?'ok':'mut'}" title="${m==='F'?'Forgangshæfniviðmið':'Stuðningshæfniviðmið'}">${m}</span> <b>${esc(v.y)}:</b> ${esc(v.texti)}</label>`).join('');}));
+  a.aukasvid=a.aukasvid||[];
+  const auka=aukaForm(a,n);
   const warn=[];if(!a.fra||!a.til)warn.push('Dagsetningar námstímabils vantar');if(S.length&&!a.flokkar.length)warn.push('Veljið þá flokka sem metnir eru á tímabilinu');if(S.length&&!a.vidmid.length)warn.push('Engin hæfniviðmið valin');if(!a.lokamat.some(x=>x.heiti&&x.skil))warn.push('Lokamatsverkefni með skiladegi vantar');if(S.length&&a.lokamat.some(x=>x.heiti&&!x.flokkur))warn.push('Tengið lokamatsverkefni við flokk');
   let h=`<div class="two"><div class="panel noprint">
   <div class="bar"><input type="text" placeholder="Heiti námstímabils, t.d. Ljóð og myndmál" style="flex:1" value="${esc(a.heiti)}" data-k="heiti" ${upd}>
@@ -297,7 +323,7 @@ function naForm(a,n){
   ${warn.length?`<div class="warnbox">${warn.map(esc).join(' · ')}</div>`:''}
   <div class="step"><h4>1. Námstímabil</h4><div class="bar"><label>Frá <input type="date" data-k="fra" value="${a.fra}" ${upd}></label><label>Til <input type="date" data-k="til" value="${a.til}" ${upd}></label><label>Kennslustundir <input type="number" data-k="stundir" style="width:80px" value="${a.stundir}" ${upd}></label></div></div>
   <div class="step"><h4>2. Inntak náms</h4><label>Helstu viðfangsefni og markmið tímabilsins</label><textarea data-k="inntak" ${upd}>${esc(a.inntak)}</textarea>
-   ${S.length?`<label>Flokkar sem metnir eru á tímabilinu (vægi birtist foreldrum)</label>${fl}<label>Hæfniviðmið tímabilsins (úr forgangsröðun ${g}. bekkjar; F = forgangs-, S = stuðningsviðmið)</label>${vm||'<span class="muted">Engin viðmið merkt fyrir þennan árgang í völdum flokkum – sjá Forgangsröðun.</span>'}`:''}</div>
+   ${S.length?`<label>Flokkar sem metnir eru á tímabilinu (vægi birtist foreldrum)</label>${fl}<label>Hæfniviðmið tímabilsins (úr forgangsröðun ${g}. bekkjar; F = forgangs-, S = stuðningsviðmið)</label>${vm||'<span class="muted">Engin viðmið merkt fyrir þennan árgang í völdum flokkum – sjá Forgangsröðun.</span>'}`:''}${auka}</div>
   <div class="step"><h4>3. Verkefnavinna og heimanám</h4><label>Fyrirkomulag leiðsagnarnáms og helstu verkefni</label><textarea data-k="verkefni" ${upd}>${esc(a.verkefni)}</textarea><label>Heimanám</label><textarea data-k="heimanam" ${upd}>${esc(a.heimanam)}</textarea></div>
   <div class="step"><h4>4. Námsgögn</h4><textarea data-k="gogn" ${upd}>${esc(a.gogn)}</textarea></div>
   <div class="step"><h4>5. Fyrirkomulag lokamats</h4>${g===10?'<div class="warnbox">10. bekkur 2026–2027: við brautskráningu er gefin einkunn 4–10 fyrir hvern flokk og lokaeinkunn reiknuð sem vegið meðaltal (7 = hæfniviðmiðum náð).</div>':''}<label>Matsaðferðir</label><textarea data-k="matsadf" ${upd}>${esc(a.matsadf)}</textarea><label>Lokamatsverkefni og skiladagar</label>
@@ -316,13 +342,16 @@ function naPrev(a,n){
    <h4>Námstímabil</h4><div>${d(a.fra)} – ${d(a.til)}${a.stundir?` (alls ${esc(a.stundir)} kennslustundir)`:''}</div>
    <h4>Inntak náms</h4><div>${esc(a.inntak)}</div>
    ${fls.length?`<div style="margin-top:6px">Á námstímabilinu er metin hæfni í flokkunum:</div><ul>${fls.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
-   ${vs.length?`<div style="margin-top:6px">Hæfniviðmið – nemandi getur:</div><ul>${vs.map(v=>`<li>${esc(v.texti)}</li>`).join('')}</ul>`:''}
+   ${(()=>{const eig=vs.filter(v=>(n.svid||[]).includes(v.s)),au=vs.filter(v=>!(n.svid||[]).includes(v.s));let o='';
+     if(eig.length)o+=`<div style="margin-top:6px">Hæfniviðmið – nemandi getur:</div><ul>${eig.map(v=>`<li>${esc(v.texti)}</li>`).join('')}</ul>`;
+     [...new Set(au.map(v=>v.s))].forEach(sid=>{const sv=G.svid.find(x=>x.id===sid);o+=`<div style="margin-top:6px">Samþætting við ${esc(sv.heiti.toLowerCase())} – nemandi getur:</div><ul>${au.filter(v=>v.s===sid).map(v=>`<li>${esc(v.texti)}</li>`).join('')}</ul>`});
+     return o})()}
    <h4>Verkefnavinna og heimanám</h4><div>${esc(a.verkefni)}${a.heimanam?'<br>Heimanám: '+esc(a.heimanam):''}</div>
    <h4>Námsgögn</h4><div>${esc(a.gogn)}</div>
    <h4>Fyrirkomulag lokamats</h4><div>${esc(a.matsadf)}</div>
    <div style="margin-top:4px">Einkunnir eru gefnar á kvarðanum 1–10 í heilum tölum fyrir hvern flokk; 7 merkir að hæfniviðmiðum flokksins sé náð.</div>
    ${a.lokamat.filter(x=>x.heiti).length?`<ul>${a.lokamat.filter(x=>x.heiti).map(x=>`<li>${esc(x.heiti)}${x.flokkur?` (metið í flokknum ${esc(x.flokkur.split('|')[1])})`:''}${x.skil?' – skiladagur '+d(x.skil):''}</li>`).join('')}</ul>`:''}
-   ${S.length?`<div class="muted" style="margin-top:10px;font-size:12px">Tengsl við aðalnámskrá: ${S.map(s=>esc(s.kafli)).join(', ')}</div>`:''}</div>`;
+   ${S.length||(a.aukasvid||[]).length?`<div class="muted" style="margin-top:10px;font-size:12px">Tengsl við aðalnámskrá: ${[...new Set([...S,...(a.aukasvid||[]).map(id=>G.svid.find(x=>x.id===id)).filter(Boolean)].map(s=>s.kafli))].map(esc).join(', ')}</div>`:''}</div>`;
 }
 function updNa(id,el){const a=A.namsaetlanir.find(x=>x.id===id);a[el.dataset.k]=el.value;save();render()}
 function tgl(id,k,v){const a=A.namsaetlanir.find(x=>x.id===id);const i=a[k].indexOf(v);i<0?a[k].push(v):a[k].splice(i,1);save();render()}
@@ -459,7 +488,44 @@ function almDoc(){const w=window.open('','_blank');if(!w){alert('Leyfið spretti
 function almDl(name,data,type){const b=new Blob([data],{type});const x=document.createElement('a');x.href=URL.createObjectURL(b);x.download=name;document.body.appendChild(x);x.click();x.remove()}
 function almWord(){almDl('skolanamskra-almennur-hluti.doc','﻿'+almHTML(true),'application/msword')}
 function almSaekja(){almDl('skolanamskra-almennur-hluti.html',almHTML(false).replace(/<div class="bar">[\s\S]*?<\/div>/,''),'text/html')}
-function render(){const m=$('#main');if(V.tab==='alm'){almRender();return}m.innerHTML=V.tab==='yfirlit'?vYfirlit():V.tab==='forg'?vForg():V.tab==='naa'?vNaa():V.tab==='sk'?vSk():vStill()}
+/* ---------- Greining (innanhúss) ---------- */
+function grStat(){
+  const inc=V.gSt||'allar';
+  const NA=A.namsaetlanir.filter(a=>inc==='allar'||(inc==='tilbuin'?a.stada!=='drog':a.stada==='birt'));
+  const C={};NA.forEach(a=>(a.vidmid||[]).forEach(id=>{const k=id+'@'+a.argangur;(C[k]=C[k]||[]).push(a)}));
+  return {NA,C};
+}
+function naLbl(a){const n=G.N.find(x=>x.id===a.nam);return `${n?n.heiti:''}${a.heiti?': '+a.heiti:''}`}
+function vGrein(){
+  const {NA,C}=grStat(); const S=G.svid.filter(s=>s.flokkar.length);
+  const tegund=V.gTeg||'F';
+  const inF=(v,g)=>{const m=fg(v.id,g);return tegund==='F'?m==='F':m==='F'||m==='S'};
+  let h=`<h2>Greining á vali hæfniviðmiða</h2><p class="lead">Innanhússyfirlit: hvaða hæfniviðmið úr forgangsröðun hafa verið valin í námsáætlunum, hversu oft, og hver hafa ekki verið valin í neinni áætlun. Þetta birtist ekki í skólanámskránni.</p>
+  <div class="bar"><span class="muted">Telja áætlanir:</span><div class="seg">${[['allar','Allar'],['tilbuin','Tilbúnar og birtar'],['birt','Aðeins birtar']].map(([k,l])=>`<button class="${(V.gSt||'allar')===k?'on':''}" onclick="V.gSt='${k}';render()">${l}</button>`).join('')}</div>
+   <span class="muted" style="margin-left:10px">Viðmið:</span><div class="seg">${[['F','Forgangsviðmið (F)'],['FS','F og stuðningsviðmið (S)']].map(([k,l])=>`<button class="${tegund===k?'on':''}" onclick="V.gTeg='${k}';render()">${l}</button>`).join('')}</div></div>`;
+  if(!NA.length) h+=`<div class="warnbox">Engar námsáætlanir í þessu vali enn. Yfirlitið fyllist eftir því sem námsáætlanir eru gerðar.</div>`;
+  // þekjutafla
+  h+=`<div class="panel"><h3>Þekja eftir greinasviði og árgangi</h3><p class="muted" style="margin-top:0">Hlutfall ${tegund==='F'?'forgangsviðmiða':'merktra viðmiða'} árgangsins sem valin hafa verið í a.m.k. einni námsáætlun. Smellið á reit til að sjá sundurliðun.</p>
+  <table class="cov"><tr><th></th>${[1,2,3,4,5,6,7,8,9,10].map(g=>`<th>${g}.</th>`).join('')}</tr>`;
+  S.forEach(s=>{h+=`<tr><td class="n">${esc(s.heiti)}</td>`;for(let g=1;g<=10;g++){let t=0,k=0;s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{if(v.stig===stigOf(g)&&inF(v,g)){t++;if(C[v.id+'@'+g])k++}})));
+    if(!t){h+=`<td class="muted">–</td>`;continue}const p=k/t;const bg=k===0?'#fbe3e0':p<.5?'#fdf0d5':p<1?'#e3f1e6':'#bfe3c8';
+    h+=`<td class="c" style="background:${bg}" title="${k} af ${t}" onclick="V.gSvid='${s.id}';V.gArg=${g};render()">${Math.round(p*100)}%<div class="muted" style="font-size:10.5px">${k}/${t}</div></td>`}h+=`</tr>`});
+  h+=`</table></div>`;
+  // sundurliðun
+  const sid=V.gSvid||S[0].id, g=V.gArg||1, s=G.svid.find(x=>x.id===sid);
+  h+=`<div class="panel"><div class="bar"><select onchange="V.gSvid=this.value;render()">${S.map(x=>`<option value="${x.id}" ${x.id===sid?'selected':''}>${esc(x.heiti)}</option>`).join('')}</select><div class="seg">${[1,2,3,4,5,6,7,8,9,10].map(x=>`<button class="${x===g?'on':''}" onclick="V.gArg=${x};render()">${x}.</button>`).join('')}</div></div>`;
+  let t=0,k=0,rows='',utan=[];
+  s.flokkar.forEach(f=>{let r='';f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{if(v.stig!==stigOf(g))return;const m=fg(v.id,g);const L=C[v.id+'@'+g]||[];
+      if(inF(v,g)){t++;if(L.length)k++;r+=`<tr class="${L.length?'':'no'}"><td class="k">${L.length||'0'}</td><td><span class="pill ${m==='F'?'ok':'mut'}">${m}</span> <b>${esc(y.heiti)}:</b> ${esc(v.texti)}${L.length?`<div class="muted" style="font-size:12px">${L.map(a=>`<a onclick="V.aArg=${a.argangur};V.aNam='${a.nam}';V.aId='${a.id}';tab('naa')">${esc(naLbl(a))}</a>`).join(' · ')}</div>`:''}</td></tr>`}
+      else if(L.length) utan.push([y,v,m,L]);}));
+    if(r) rows+=`<tr class="fl"><td colspan="2">${esc(f.heiti)}</td></tr>`+r});
+  h+=`<h3 style="margin-top:10px">${esc(s.heiti)} · ${g}. bekkur</h3><div><span class="kpi"><b>${t}</b>${tegund==='F'?'forgangsviðmið':'merkt viðmið'}</span><span class="kpi"><b>${k}</b>valin a.m.k. einu sinni</span><span class="kpi" style="color:var(--bad)"><b>${t-k}</b>ekki valin í neinni áætlun</span><span class="kpi"><b>${utan.length}</b>${tegund==='F'?'valin en ekki merkt F':'valin utan forgangsröðunar'}</span></div>`;
+  h+=rows?`<table class="vt"><tr><th>Fjöldi</th><th>Hæfniviðmið og áætlanir sem velja það</th></tr>${rows}</table>`:`<div class="muted">Engin viðmið merkt fyrir ${g}. bekk í þessu greinasviði.</div>`;
+  if(utan.length) h+=`<h4 style="margin-top:12px">Valin í námsáætlunum en ekki merkt ${tegund==='F'?'F':'F/S'} fyrir ${g}. bekk</h4><table class="vt">${utan.map(([y,v,m,L])=>`<tr><td class="k">${L.length}</td><td><span class="pill ${m?'mut':'warn'}">${m||'–'}</span> <b>${esc(y.heiti)}:</b> ${esc(v.texti)}<div class="muted" style="font-size:12px">${L.map(a=>esc(naLbl(a))).join(' · ')}</div></td></tr>`).join('')}</table>`;
+  h+=`</div>`;
+  return h;
+}
+function render(){const m=$('#main');if(V.tab==='alm'){almRender();return}m.innerHTML=V.tab==='yfirlit'?vYfirlit():V.tab==='forg'?vForg():V.tab==='naa'?vNaa():V.tab==='sk'?vSk():V.tab==='grein'?vGrein():vStill()}
 load();
 </script>
 </body>
