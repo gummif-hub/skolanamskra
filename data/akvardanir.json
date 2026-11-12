@@ -179,7 +179,7 @@
    "9": "F"
   },
   "0.13.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "F",
    "4": "F"
@@ -230,6 +230,7 @@
    "10": "F"
   },
   "0.17.0": {
+   "1": "F",
    "3": "F",
    "4": "F"
   },
@@ -282,11 +283,10 @@
    "9": "F"
   },
   "0.21.0": {
-   "3": "S",
    "4": "F"
   },
   "0.21.1": {
-   "5": "F"
+   "7": "F"
   },
   "0.21.2": {
    "10": "F"
@@ -402,8 +402,7 @@
    "10": "F"
   },
   "1.7.0": {
-   "1": "S",
-   "2": "F"
+   "4": "F"
   },
   "1.7.1": {
    "5": "S",
@@ -1771,6 +1770,8 @@
    "9": "F"
   },
   "5.17.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1784,6 +1785,8 @@
    "9": "F"
   },
   "5.18.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1797,6 +1800,8 @@
    "9": "F"
   },
   "5.19.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1810,6 +1815,8 @@
    "9": "F"
   },
   "5.20.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1832,6 +1839,8 @@
    "9": "F"
   },
   "5.22.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1845,6 +1854,8 @@
    "9": "F"
   },
   "5.23.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1858,6 +1869,8 @@
    "9": "F"
   },
   "5.24.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1872,7 +1885,7 @@
   },
   "5.25.0": {
    "1": "F",
-   "2": "F",
+   "2": "S",
    "3": "F",
    "4": "F"
   },
@@ -1886,6 +1899,8 @@
    "9": "F"
   },
   "5.26.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -1899,6 +1914,8 @@
    "9": "F"
   },
   "5.27.0": {
+   "1": "S",
+   "2": "S",
    "3": "S",
    "4": "F"
   },
@@ -2011,6 +2028,7 @@
    "9": "F"
   },
   "5.35.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2096,6 +2114,7 @@
    "10": "F"
   },
   "5.44.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2106,6 +2125,7 @@
    "10": "F"
   },
   "5.45.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2116,6 +2136,7 @@
    "10": "F"
   },
   "5.46.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2126,6 +2147,7 @@
    "10": "F"
   },
   "5.47.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2136,6 +2158,7 @@
    "10": "F"
   },
   "5.48.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2146,6 +2169,7 @@
    "10": "F"
   },
   "5.49.0": {
+   "1": "S",
    "3": "S",
    "4": "F"
   },
@@ -2169,6 +2193,9 @@
    "9": "F"
   },
   "6.1.0": {
+   "1": "F",
+   "2": "F",
+   "3": "S",
    "4": "F"
   },
   "6.1.1": {
@@ -2194,6 +2221,8 @@
    "9": "F"
   },
   "6.3.0": {
+   "1": "F",
+   "2": "S",
    "4": "F"
   },
   "6.3.1": {
@@ -2220,6 +2249,7 @@
    "9": "F"
   },
   "6.5.0": {
+   "1": "F",
    "4": "F"
   },
   "6.5.1": {
@@ -2230,6 +2260,7 @@
    "9": "F"
   },
   "6.6.0": {
+   "2": "F",
    "4": "F"
   },
   "6.6.1": {
@@ -2240,7 +2271,7 @@
    "9": "F"
   },
   "6.7.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -2256,7 +2287,7 @@
    "10": "S"
   },
   "6.8.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -2272,7 +2303,7 @@
    "10": "S"
   },
   "6.9.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -2288,7 +2319,7 @@
    "10": "S"
   },
   "6.10.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -2304,7 +2335,7 @@
    "10": "S"
   },
   "6.11.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -2320,7 +2351,7 @@
    "10": "F"
   },
   "6.12.0": {
-   "1": "S",
+   "1": "F",
    "2": "S",
    "3": "S",
    "4": "F"
@@ -4206,6 +4237,9 @@
    "9": "F"
   },
   "15.1.0": {
+   "1": "S",
+   "2": "S",
+   "3": "S",
    "4": "F"
   },
   "15.1.1": {
@@ -4218,10 +4252,13 @@
    "9": "F"
   },
   "15.2.0": {
+   "1": "F",
+   "2": "F",
+   "3": "F",
    "4": "F"
   },
   "15.2.1": {
-   "5": "S",
+   "5": "F",
    "6": "F",
    "7": "F"
   },
@@ -4230,13 +4267,13 @@
    "9": "F"
   },
   "15.3.0": {
-   "1": "S",
-   "2": "S",
-   "3": "S",
+   "1": "F",
+   "2": "F",
+   "3": "F",
    "4": "F"
   },
   "15.3.1": {
-   "5": "S",
+   "5": "F",
    "6": "F",
    "7": "F"
   },
@@ -4245,9 +4282,6 @@
    "9": "F"
   },
   "15.4.0": {
-   "1": "F",
-   "2": "F",
-   "3": "F",
    "4": "F"
   },
   "15.4.1": {
@@ -4266,7 +4300,7 @@
    "4": "F"
   },
   "15.5.1": {
-   "5": "F"
+   "7": "F"
   },
   "15.5.2": {
    "10": "F"
@@ -4290,6 +4324,7 @@
    "4": "F"
   },
   "15.7.1": {
+   "5": "S",
    "6": "S",
    "7": "F"
   },
@@ -4319,10 +4354,12 @@
    "9": "F"
   },
   "15.10.0": {
+   "1": "S",
+   "2": "S",
+   "3": "F",
    "4": "F"
   },
   "15.10.1": {
-   "5": "S",
    "6": "S",
    "7": "F"
   },
@@ -4337,7 +4374,7 @@
    "4": "F"
   },
   "15.11.1": {
-   "5": "S",
+   "5": "F",
    "6": "F",
    "7": "F"
   },
@@ -4349,7 +4386,7 @@
    "4": "F"
   },
   "15.12.1": {
-   "5": "F"
+   "7": "F"
   },
   "15.12.2": {
    "8": "F",
@@ -4376,6 +4413,8 @@
    "0.18.0": "an-visbendingar",
    "0.18.1": "an-visbendingar",
    "0.18.2": "an-visbendingar",
+   "0.21.0": "an-visbendingar",
+   "0.21.1": "an-visbendingar",
    "0.21.2": "an-visbendingar",
    "0.22.0": "an-visbendingar",
    "0.22.1": "an-visbendingar",
@@ -4390,6 +4429,7 @@
    "1.4.2": "an-visbendingar",
    "1.5.2": "an-visbendingar",
    "1.6.2": "an-visbendingar",
+   "1.7.0": "an-visbendingar",
    "1.7.2": "an-visbendingar",
    "1.8.2": "an-visbendingar",
    "1.9.0": "an-visbendingar",
@@ -4745,19 +4785,220 @@
    "13.10.2": "an-visbendingar",
    "14.10.1": "an-visbendingar",
    "14.14.1": "an-visbendingar",
-   "15.1.0": "an-visbendingar",
-   "15.2.0": "an-visbendingar",
+   "15.5.1": "an-visbendingar",
    "15.5.2": "an-visbendingar",
-   "15.7.0": "an-visbendingar",
    "15.8.1": "an-visbendingar",
    "15.8.2": "an-visbendingar",
-   "15.10.0": "an-visbendingar",
-   "15.12.0": "an-visbendingar"
+   "15.12.1": "an-visbendingar"
   },
-  "dags": "2026-11-09"
+  "dags": "2026-11-06"
  },
- "stadfest": {},
+ "stadfest": {
+  "Samfélagsgreinar|0": "2026-11-07"
+ },
  "athugasemdir": {},
- "namsaetlanir": [],
- "breytt": null
+ "namsaetlanir": [
+  {
+   "id": "namw6b8jpl",
+   "nam": "1--slenska",
+   "argangur": 1,
+   "heiti": "",
+   "fra": "",
+   "til": "",
+   "stundir": "",
+   "inntak": "Lesskilningur; Hlustunarskilningur; Talað mál, samskipti og frásögn; Ritunartjáning; Unnið er í lotum og viðfangsefni eru samþætt við aðrar námsgreinar. Markmiðið er að nemendur fái tækifæri til að fást við fjölbreytt verkefni sem efla m.a. orðaforða og auki öryggi í ritun stuttra texta, taki þátt í umræðum og fræðslu um almenn efni. Áhersla er lögð á lestur nemenda, að þeir auki færni sína í lestri og njóti þess að lesa fjölbreytt lesefni. Lögð er áhersla á að nemendur efli hæfni sína til að taka þátt í lýðræðislegum samræðum og skoðanaskiptum",
+   "flokkar": [
+    "Íslenska|Talað mál, hlustun og áhorf",
+    "Íslenska|Bókmenntir"
+   ],
+   "vidmid": [],
+   "verkefni": "Áhersla er á einstaklingsmiðað nám í allri kennslu, samvinnu, lausnamiðun, jákvæð samskipti, fagmennsku og metnað. Áhersla er á snemmtækan stuðning, gagnkvæma virðingu og traust milli heimila og skóla. Kennsla fer fram í litlum hópum og á vinnustöðvum.",
+   "heimanam": "",
+   "gogn": "Verkefni úr námsbókum sem henta getu hvers og eins; Önnur verkefni sem eru búin til af kennurum; Lestrarbækur; Spil; Ýmsir textar og verkefni af veraldarvefnum",
+   "matsadf": "Leiðsagnamat: Lesferill: stafaþekking, lesfimi, lestækni og nefnuhraði metinn. (Haustönn-miðönn-vorönn) Skrifleg umsögn við lok haustannar og vorannar út frá vinnusemi nemenda, frammistöðu, áhuga og framförum í kennslustundum. Leiðsagnarmat: Börnin vinna ýmis verkefni og safna í möppu því besta sem þau hafa gert á hverri önn og fara með heim við lok skólaárs. Að öðru leyti verður stuðst við sjálfsmat og kannanir.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": ""
+    }
+   ],
+   "stada": "birt",
+   "aukasvid": []
+  },
+  {
+   "id": "namw6i7nuu",
+   "nam": "1-n-tt-ru-og-samf-lagsfr-i",
+   "argangur": 1,
+   "heiti": "",
+   "fra": "2026-11-10",
+   "til": "2026-11-19",
+   "stundir": "11",
+   "inntak": "Umhverfið; Lífið; Íslandssaga og nærumhverfi; Mannslíkaminn - heilsa, hollusta, svefn, bygging og starfsemi líkamanns; Kraftur og orka; Trú og siðir; Tilraunir og verklegar æfingar; Alheimur; Samskipti og líðan",
+   "flokkar": [
+    "Náttúrugreinar|Efnin",
+    "Náttúrugreinar|Lífið",
+    "Náttúrugreinar|Umhverfið"
+   ],
+   "vidmid": [
+    "5.9.0",
+    "5.10.0",
+    "5.12.0",
+    "5.33.0",
+    "5.32.0",
+    "5.30.0"
+   ],
+   "verkefni": "Einstaklingsmiðað nám og lýðræðislegir kennsluhættir. Vinnan fer fram á vinnustöðvum og í hópi. Ávallt er lögð áhersla á að í hverju verkefni sem lagt er fyrir sé rými fyrir sköpun hvers einstaklings, langanir og smekk.",
+   "heimanam": "",
+   "gogn": "Komdu og skoðaðu bækurnar, Halló heimur 1-3, Tilraunir í náttúrufræði, veraldarvefurinn, ýmsar fræðibækur sem tengjast efninu beint og fjölbreytt efni frá kennara.",
+   "matsadf": "Leiðsagnarmat Nemendur vinna ýmis verkefni og safna í möppu því besta sem þeir hafa gert á hvorri önn og fara með heim við lok skólaárs. Skrifleg umsögn við lok haustannar og vorannar út frá vinnusemi nemenda, frammistöðu, áhuga og framförum í kennslustundum.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": "2026-11-19"
+    },
+    {
+     "heiti": "",
+     "skil": "2026-12-01"
+    }
+   ],
+   "stada": "tilbuin"
+  },
+  {
+   "id": "namwc9em8c",
+   "nam": "1--slenska",
+   "argangur": 1,
+   "heiti": "",
+   "fra": "",
+   "til": "",
+   "stundir": "",
+   "inntak": "Hlustunarskilningur; Lesskilningur; Talað mál, samskipti og frásögn; Ritunartjáning",
+   "flokkar": [
+    "Íslenska|Talað mál, hlustun og áhorf"
+   ],
+   "vidmid": [
+    "1.0.0",
+    "11.0.0",
+    "11.1.0"
+   ],
+   "verkefni": "Einstaklingsmiðað nám nemenda og lýðræðislegir kennsluhættir. Vinnan fer fram sem einstaklingsvinna, stöðvavinna eða í hóp. Áhersla er lögð á góð samskipti, vináttu og að hjálpast að.",
+   "heimanam": "",
+   "gogn": "Ýmsir textar og verkefni af veraldarvefnum; Verkefni úr námsbókum sem henta getu hvers og eins; Önnur verkefni sem  eru búin til af kennurum; Lestrarbækur; Spil",
+   "matsadf": "Leiðsagnamat: Lesferill: stafaþekking, lesfimi, lestækni og nefnuhraði metinn. (Haustönn-miðönn-vorönn) Skrifleg umsögn við lok vorannar út frá vinnusemi nemenda, frammistöðu, áhuga og framförum í kennslustundum. Nemendur fara heim með lotu í íslensku og fara yfir með foreldrum/forráðamönnum og meta í sameiningu. Leiðsagnarmat: Börnin vinna ýmis verkefni og safna í  möppu því besta sem þau hafa gert á hverri önn og fara með heim við lok skólaárs.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": ""
+    }
+   ],
+   "stada": "birt",
+   "aukasvid": [
+    "Dans"
+   ]
+  },
+  {
+   "id": "namwc9hv5z",
+   "nam": "7-samf-lagsfr-i",
+   "argangur": 7,
+   "heiti": "",
+   "fra": "",
+   "til": "",
+   "stundir": "",
+   "inntak": "Jörðin okkar; Saga; Borgarvitund; Siðferði og trú",
+   "flokkar": [
+    "Samfélagsgreinar|Vinnulag samfélagsgreina",
+    "Samfélagsgreinar|Borgaravitund",
+    "Samfélagsgreinar|Saga"
+   ],
+   "vidmid": [
+    "6.0.1",
+    "6.3.1",
+    "6.30.1",
+    "6.32.1",
+    "6.33.1"
+   ],
+   "verkefni": "Nemendur vinna verkefni tengd efninu ýmist einir eða saman í hópum. Leitast er við að auka sjálfstæði nemenda í vinnubrögðum og þjálfa þá í umræðum og efla gagnrýna hugsun. Leitast er við að mæta þörfum hvers og eins.",
+   "heimanam": "",
+   "gogn": "Vefur mms.is, ýmsar kennslubækur, efni af netinu og verkefni unnin af kennara",
+   "matsadf": "Leiðsagnarmat. Námsmat byggist á símati, sjálfsmati, virkni, samvinnu, samskiptum og afkastagetu nemenda.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": "",
+     "flokkur": "Samfélagsgreinar|Vinnulag samfélagsgreina"
+    },
+    {
+     "heiti": "",
+     "skil": "",
+     "flokkur": "Samfélagsgreinar|Borgaravitund"
+    }
+   ],
+   "stada": "drog"
+  },
+  {
+   "id": "namwcangkf",
+   "nam": "7-st-r-fr-i",
+   "argangur": 7,
+   "heiti": "",
+   "fra": "",
+   "til": "",
+   "stundir": "",
+   "inntak": "Heilar tölur, tugabrot, almenn brot, reikniaðgerðirnar fjórar, tugabrot, hlutfallareikningur, rúmfræði, mælingar, tímaútreikningar og prósentureikning.",
+   "flokkar": [
+    "Stærðfræði|Vinnulag stærðfræðinnar",
+    "Stærðfræði|Tölur og reikningur"
+   ],
+   "vidmid": [
+    "4.4.1",
+    "4.3.1",
+    "4.2.1"
+   ],
+   "verkefni": "5 kennslustundir á viku og er 6. og 7. bekk kennt saman. Í einum tím á viku er miðstiginu kennt saman. Námsefninu er skipt upp í lotur og aðlagað að þörfum hvers og eins.",
+   "heimanam": "",
+   "gogn": "Stika 3a og 3b, Stika 2a og 2b, nemendabækur og æfingahefti. Stærðfræðiverkefni sem kennari útvegar og hentar hverjum og einum",
+   "matsadf": "Símat, smápróf og lotukannanir.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": "",
+     "flokkur": "Stærðfræði|Vinnulag stærðfræðinnar"
+    },
+    {
+     "heiti": "",
+     "skil": ""
+    }
+   ],
+   "stada": "drog"
+  },
+  {
+   "id": "namwcawumq",
+   "nam": "7-myndmennt",
+   "argangur": 7,
+   "heiti": "",
+   "fra": "",
+   "til": "",
+   "stundir": "",
+   "inntak": "Leitast er við að nemandi geti nýtt sér grunnþætti myndlistar í eigin sköpun. Þekki hugtakið sjónarhorn og geti unnið með mismunandi sjónarhorn. Geti unnið mynd eftir fyrirmynd.",
+   "flokkar": [
+    "Sjónlistir|Sköpun"
+   ],
+   "vidmid": [
+    "9.0.1",
+    "9.1.1"
+   ],
+   "verkefni": "Verkefni er kynnt fyrir nemendum ásamt miðlum sem unnið er með. Ýtt er undir sköpunargleði hvers og eins og nemendur vinna verkefni út frá sinni getu og hugmyndum. Stutt er við hugmyndir sem koma til nemenda við sköpunina.",
+   "heimanam": "",
+   "gogn": "Verkefni úr bókinni Ég sé með teikningu” og unnið með hugmyndir af netinu",
+   "matsadf": "Símat kennara sem einkum felur í sér eftirfarandi þætti: áhuga, virkni, sjálfstæði, skapandi vinnubrögð og frágang.",
+   "lokamat": [
+    {
+     "heiti": "",
+     "skil": ""
+    }
+   ],
+   "stada": "drog"
+  }
+ ],
+ "breytt": "2026-11-12T08:43:49.109Z",
+ "vaegi": {},
+ "texti": {}
 }
