@@ -1,0 +1,10 @@
+{
+ "v": 1,
+ "iter": 600000,
+ "salt": "CsFn7V2qIyoMyxJYXIlGcw==",
+ "iv": "6Fqy3hTI+XoIC7Tg",
+ "ct": "rGDhhe5nvoqhrwHjxWXdRuB8kOJWPy9Z6tKMljvOPlyxkQqhUaT+2kSANgbqQKoiVGJaTUtigfbqXp9lVC+U87e1gAHl1Yo17JX4wrVM2gtciVl2OJVOtUZW4QYXCHPIyVeHUB3kWJcJxSFjOw==",
+ "repo": "gummif-hub/skolanamskra",
+ "branch": "main",
+ "uppfaert": "2026-11-12"
+}
