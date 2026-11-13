@@ -37,7 +37,7 @@ function buildPub(grunn,akv){
     vaegi:Object.fromEntries([4,7,10].map(g=>[String(g),vaegiOf(grunn,akv,s.id,f.heiti,g)])),
     yfirheiti:f.yfirheiti.map(y=>({heiti:y.heiti,vidmid:y.vidmid.map(v=>({id:v.id,stig:v.stig,texti:v.texti}))}))}))}));
   const forg={}; Object.entries(akv.forgangur||{}).forEach(([k,v])=>{if(Object.keys(v).length)forg[k]=v});
-  const namskrar=grunn.namskrar.map(n=>{const t=txtOf(akv,n);return {argangur:n.argangur,heiti:n.heiti,svid:n.svid,prim:PRIM.test(n.heiti),vidf:t.vidf,kh:t.kh,kf:t.kf,gogn:t.gogn,mat:t.mat}});
+  const namskrar=grunn.namskrar.map(n=>{const t=txtOf(akv,n);return {id:n.id,argangur:n.argangur,heiti:n.heiti,breytt:!!(akv.texti||{})[n.id],svid:n.svid,prim:PRIM.test(n.heiti),vidf:t.vidf,kh:t.kh,kf:t.kf,gogn:t.gogn,mat:t.mat}});
   return {samsett:SAMSETT,n10:NAMSMAT10,fyrirvari:akv.stillingar.fyrirvari!==false,stillingar:{skoli:akv.stillingar.skoli,skolaar:akv.stillingar.skolaar,merki:akv.stillingar.merki},
     namsmat:akv.stillingar.namsmat||'',dags:(d=>`${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`)(new Date(akv.breytt||Date.now())),drog:nStad<totKeys(grunn),svid,forg,namskrar};
 }

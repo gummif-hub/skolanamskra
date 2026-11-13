@@ -26,7 +26,9 @@ Hún birtir líka skólanámskrána fyrir foreldra og nemendur.
      velja lykilorð skólans (a.m.k. 12 stafir, t.d. þrjú til fjögur orð saman).
    - Lykillinn er dulkóðaður með lykilorðinu (AES-256-GCM, PBKDF2-SHA256 600.000 umferðir)
      og aðeins dulkóðuð útgáfa er vistuð í `data/adgangur.json`.
-   - Starfsfólk skráir sig inn með **nafni og lykilorði skólans**. Nafnið fylgir hverri vistun.
+   - Tvö lykilorð: **lykilorð starfsfólks** og **lykilorð skólastjóra**. Allir skrá sig inn
+     með nafni og lykilorði; nafnið fylgir hverri vistun. Aðeins skólastjóri sér *Almennan hluta*
+     (dulkóðaður með sérstökum lykli) og uppsetningu innskráningar.
    - Tólið er lokað án innskráningar. Vinnugögnin (`akvardanir.json`, `almennur.json`) eru
      dulkóðuð með gagnalykli sem aðeins fæst með lykilorði skólans. Birta skólanámskráin er
      í `data/birt.json` (ódulkóðuð, aðeins það sem birtist foreldrum) og uppfærist sjálfkrafa.
