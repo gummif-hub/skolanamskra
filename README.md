@@ -27,6 +27,9 @@ Hún birtir líka skólanámskrána fyrir foreldra og nemendur.
    - Lykillinn er dulkóðaður með lykilorðinu (AES-256-GCM, PBKDF2-SHA256 600.000 umferðir)
      og aðeins dulkóðuð útgáfa er vistuð í `data/adgangur.json`.
    - Starfsfólk skráir sig inn með **nafni og lykilorði skólans**. Nafnið fylgir hverri vistun.
+   - Tólið er lokað án innskráningar. Vinnugögnin (`akvardanir.json`, `almennur.json`) eru
+     dulkóðuð með gagnalykli sem aðeins fæst með lykilorði skólans. Birta skólanámskráin er
+     í `data/birt.json` (ódulkóðuð, aðeins það sem birtist foreldrum) og uppfærist sjálfkrafa.
    - Til að loka á aðgang (t.d. ef lykilorð lekur): eyða lyklinum á GitHub og setja upp
      innskráningu aftur með nýjum lykli og nýju lykilorði.
 3. Tengja í `https://gummif-hub.github.io/skolanamskra/skolanamskra.html` af

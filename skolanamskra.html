@@ -170,8 +170,11 @@ async function start(){
   if(!G){
     try{
       const t='?t='+Date.now();
-      const [g,a]=await Promise.all([fetch('data/grunngogn.json'+t).then(r=>r.json()),fetch('data/akvardanir.json'+t).then(r=>r.json())]);
-      G=buildPub(g,a);
+      const b=await fetch('data/birt.json'+t,{cache:'no-store'});
+      if(b.ok) G=await b.json();
+      else{const [g,a]=await Promise.all([fetch('data/grunngogn.json'+t).then(r=>r.json()),fetch('data/akvardanir.json'+t).then(r=>r.json())]);
+        if(a.dulkodad) throw new Error('birt');
+        G=buildPub(g,a);}
     }catch(e){document.getElementById('view').innerHTML='<div class="card">Ekki tókst að sækja gögn skólanámskrárinnar.</div>';return}
   }
   header();render();
