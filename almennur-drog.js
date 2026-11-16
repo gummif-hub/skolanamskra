@@ -105,7 +105,7 @@ Nemendur í 8.–10. bekk hafa valtíma á stundaskrá og taka þátt í smiðju
 ### Matskvarði
 ⟨Lýsið matskvarða og matstáknum sem notuð eru í 1.–9. bekk.⟩
 
-Í 10. bekk skólaárið 2026–2027 er kvarðinn 1–10 notaður á skólaárinu, í samræmi við breytingu á aðalnámskrá sem staðfest var í nóvember 2026. Við brautskráningu er gefin einkunn 4–10 fyrir hvern flokk hæfniviðmiða og lokaeinkunn greinasviðs reiknuð sem vegið meðaltal. Einkunnin 7 merkir að hæfniviðmiðum flokksins hafi verið náð. Nemandi með 5 eða 6 í íslensku, stærðfræði eða ensku tekur undirbúningsáfanga í greininni í framhaldsskóla. Lokaeinkunn er heildstætt mat á hæfni yfir skólaárið, ekki einkunn fyrir eitt lokapróf. Nánari lýsing á einkunnakvarðanum og vægi flokka er í greinahluta skólanámskrárinnar.
+Í 10. bekk skólaárið 2026–2027 er kvarðinn 1–10 notaður á skólaárinu, í samræmi við ákvæði til bráðabirgða í aðalnámskrá sem staðfest var í nóvember 2026. Við brautskráningu er gefin einkunn 4–10 fyrir hvern flokk hæfniviðmiða og lokaeinkunn greinasviðs reiknuð sem vegið meðaltal. Einkunnin 7 merkir að hæfniviðmiðum flokksins hafi verið náð. Nemendur sem fá 7–10 í íslensku, ensku og stærðfræði búa að jafnaði yfir hæfni til að hefja nám á öðru hæfniþrepi í framhaldsskóla. Lokaeinkunn er heildstætt mat á hæfni yfir skólaárið, ekki einkunn fyrir eitt lokapróf. Nánari lýsing á einkunnakvarðanum og vægi flokka er í greinahluta skólanámskrárinnar.
 
 ### Birting
 Niðurstöður námsmats eru skráðar og birtar í Mentor, sem allir forsjáraðilar hafa aðgang að. Í foreldraviðtölum er farið yfir námslega stöðu nemandans. ⟨Hvenær vitnisburður er afhentur, t.d. við skólaslit að vori.⟩
