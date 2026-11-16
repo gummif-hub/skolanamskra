@@ -300,6 +300,7 @@ async function load(){
   G.svid.forEach(s=>s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>{v.y=y.heiti;v.f=f.heiti;v.s=s.id}))));
   A.texti=A.texti||{};
   G.N=G.namskrar.map(n=>Object.assign(n,{prim:PRIM.test(n.heiti)}));
+  if(GH.token&&!A.stillingar.n10stadfest){A.stillingar.n10stadfest='2026-11-13';A.stillingar.fyrirvari=false;save()}
   head(); render(); notandi(); adgSaekja(); birtaSidar(true);
   if(!GH.token) $('#vista').innerHTML=LOCAL?'<span style="color:var(--warn)">Óvistaðar breytingar í þessum vafra</span>':'Skoðunarhamur';
 }
@@ -368,8 +369,8 @@ function n10Panel(){
   const S=G.svid.filter(s=>s.id!=='Lykilhæfni'&&s.flokkar.some(f=>f.vaegi['10']!=null));
   const rows=S.map(s=>{const t=Math.round(s.flokkar.reduce((a,f)=>a+(vaegi(s.id,f.heiti,10)||0),0)*100);const c=!!A.stadfest[stKey(s.id,2)];return {s,t,c}});
   const ok=rows.filter(r=>r.t===100&&r.c).length;
-  return `<div class="panel"><h3>Námsmat 10. bekkjar 2026–2027: endurskoðuð skólanámskrá ${dl>0?`eftir <b>${dl}</b> daga (10. janúar 2027)`:'– frestur liðinn (10. janúar 2027)'}</h3>
-   <p class="muted" style="margin-top:0">Einkunn 4–10 fyrir hvern flokk og lokaeinkunn sem vegið meðaltal. Talnakvarðinn verður skylda í vitnisburði við lok 4., 7. og 10. bekkjar vorið 2028. Vægi hvers greinasviðs þarf að vera 100% og forgangsröðun 8.–10. bekkjar staðfest. ${A.stillingar.fyrirvari?'Byggt á drögum að ákvæði til bráðabirgða.':''}</p>
+  return `<div class="panel"><h3>Námsmat 10. bekkjar 2026–2027: vægi flokka ákveðið ${dl>0?`eftir <b>${dl}</b> daga (${NAMSMAT10.frestur_texti})`:`– frestur liðinn (${NAMSMAT10.frestur_texti})`}</h3>
+   <p class="muted" style="margin-top:0">Breytingin á aðalnámskrá hefur verið staðfest: nemendur í 10. bekk fá lokaeinkunn 4–10 við brautskráningu vorið 2027. Skólinn ákveður vægi hæfniþátta fyrir lok janúar 2027 (má nýta leiðbeinandi vægi ráðuneytisins) og birtir útfærslu námsmats í skólanámskrá ${NAMSMAT10.birting_texti}. Vægi hvers greinasviðs þarf að vera 100% og forgangsröðun 8.–10. bekkjar staðfest.</p>
    <div style="margin-bottom:6px"><b>${ok} af ${rows.length}</b> greinasviðum tilbúin.</div>
    ${rows.map(r=>`<span class="pill ${r.t===100&&r.c?'ok':r.t===100?'warn':'bad'}" style="margin:2px;cursor:pointer" title="Vægi samtals ${r.t}% · forgangsröðun 8.–10. b. ${r.c?'staðfest':'óstaðfest'}" onclick="V.svid='${r.s.id}';V.stig=2;tab('forg')">${esc(r.s.heiti)}: ${r.t}%${r.c?' ✓':''}</span>`).join('')}
    <div class="legend"><span><span class="pill ok">grænt</span> vægi 100% og staðfest</span><span><span class="pill warn">gult</span> vægi í lagi, forgangsröðun óstaðfest</span><span><span class="pill bad">rautt</span> vægi ekki 100%</span></div></div>`;
@@ -549,7 +550,8 @@ function vStill(){
   <div class="step"><h4>Skóli og skólaár</h4><div class="bar"><input type="text" value="${esc(s.skoli)}" onchange="A.stillingar.skoli=this.value;save();head()"><input type="text" value="${esc(s.skolaar)}" onchange="A.stillingar.skolaar=this.value;save();head()"></div></div>
   <div class="step"><h4>Merki skólans</h4>${s.merki?`<img src="${s.merki}" style="height:60px;display:block;margin-bottom:6px" alt="">`:'<span class="muted">Ekkert merki valið.</span>'}<br><input type="file" accept="image/*" onchange="logo(this)"> ${s.merki?'<button class="b" onclick="A.stillingar.merki=null;save();head();render()">Fjarlægja</button>':''}</div>
   <div class="step"><h4>Námsmat og matskvarði (birt í skólanámskrá)</h4><textarea style="min-height:110px" onchange="A.stillingar.namsmat=this.value;save()">${esc(s.namsmat)}</textarea></div>
-  <div class="step"><h4>Námsmat 10. bekkjar 2026–2027</h4><label class="chk"><input type="checkbox" ${s.fyrirvari?'checked':''} onchange="A.stillingar.fyrirvari=this.checked;save()">Birta fyrirvara um að lýsingin byggi á drögum að ákvæði til bráðabirgða</label><div class="muted">Takið hakið af þegar endanlegt ákvæði hefur verið birt.</div></div>
+  <div class="step"><h4>Námsmat 10. bekkjar 2026–2027</h4><div>Ákvæði til bráðabirgða um talnakvarða við lok 10. bekkjar hefur verið staðfest og birt í Stjórnartíðindum (nóv. 2026). Vægi flokka skal ákveðið fyrir ${NAMSMAT10.frestur_texti} og útfærsla námsmats birt í skólanámskrá ${NAMSMAT10.birting_texti}.</div>
+   <label class="chk" style="margin-top:6px"><input type="checkbox" ${s.fyrirvari?'checked':''} onchange="A.stillingar.fyrirvari=this.checked;save()">Birta fyrirvara á vefnum um að lýsingin geti tekið breytingum</label></div>
   <div class="step"><h4>Innskráning og vistun</h4>
    ${GH.token?`<div>Innskráð(ur) sem <b>${esc(GH.nafn||'–')}</b>. Allar breytingar vistast sjálfkrafa í sameiginlegan gagnagrunn skólans (${esc(GH.repo)}) og nafnið þitt fylgir hverri vistun. <button class="b" onclick="utskra()">Skrá út</button></div>`
      :`<div>Þú ert ekki skráð(ur) inn og tólið er í skoðunarham. <button class="b p" onclick="synaInnskr()">Skrá inn</button></div>`}

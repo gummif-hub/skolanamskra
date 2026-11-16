@@ -3,24 +3,26 @@ var STIG=[[1,2,3,4],[5,6,7],[8,9,10]];
 var stigOf=g=>g<=4?0:g<=7?1:2, endOf=g=>[4,7,10][stigOf(g)];
 var PRIM=/^(íslenska$|stærðfr|enska|danska|náttúru|samfélagsfr|myndmennt|sjónlist|hönnun|textíl|skólaíþr|upplýsinga|heimilisfr|tónmennt|dans|leiklist)/i;
 var NAMSMAT10={
-  heimild:'Drög að ákvæði til bráðabirgða í aðalnámskrá grunnskóla (2026–2027) og stuðningsefni MMS um talnakvarða og vægi flokka (sept. 2026)',
-  frestur:'2027-01-10',
-  kvardi:[['4','Hefur ekki náð tökum á viðmiðunum. Skólinn bregst við með aðlögun náms og auknum stuðningi og gerir sérstaka grein fyrir hæfni nemandans.'],
-          ['5','Hefur að nokkru leyti náð tökum á viðmiðunum og þarf frekari þjálfun.'],
-          ['6','Hefur að miklu leyti náð tökum á viðmiðunum en þarf enn stuðning við ákveðna þætti.'],
-          ['7','Hefur náð tökum á viðmiðunum – hæfniviðmiðum flokksins er náð.'],
-          ['8','Hefur náð viðmiðunum og sýnt að einhverju leyti hæfni umfram þau.'],
-          ['9','Hefur náð viðmiðunum og sýnt að miklu leyti hæfni umfram þau.'],
-          ['10','Framúrskarandi hæfni: sýnir hæfni sem er að langmestu leyti umfram viðmiðin.']],
-  atridi:['Á skólaárinu er námsmat á talnakvarðanum 1–10. Einkunnir eru alltaf gefnar í heilum tölum.',
-          'Einkunnir 1–3 eru ekki birtar nemendum og forsjáraðilum. Lægsta birta einkunn er 4, og þá bregst skólinn við með stuðningi.',
+  heimild:'Breyting á aðalnámskrá grunnskóla: ákvæði til bráðabirgða um talnakvarða í námsmati við lok grunnskóla skólaárið 2026–2027, staðfest og birt í Stjórnartíðindum í nóvember 2026 (frétt mennta- og barnamálaráðuneytisins 13.11.2026), og stuðningsefni MMS',
+  stadfest:true,
+  frestur:'2027-01-31', frestur_texti:'31. janúar 2027', birting_texti:'fyrir brautskráningu vorið 2027', gildir_til:'1. júlí 2027',
+  kvardi:[['4','Nemandi hefur ekki náð þeirri hæfni sem stefnt er að. Skólinn gerir grein fyrir því sem nemandinn hefur náð tökum á.'],
+          ['5','Nemandi er á leið að hæfninni. Með einkunnina 5 í íslensku, stærðfræði eða ensku tekur nemandi undirbúningsáfanga í greininni í framhaldsskóla.'],
+          ['6','Nemandi er á leið að hæfninni. Með einkunnina 6 í íslensku, stærðfræði eða ensku tekur nemandi undirbúningsáfanga í greininni í framhaldsskóla.'],
+          ['7','Nemandi hefur náð þeirri hæfni sem stefnt er að.'],
+          ['8','Nemandi sýnir meiri dýpt, öryggi og sjálfstæði við að beita hæfninni.'],
+          ['9','Nemandi sýnir mikla dýpt, öryggi og sjálfstæði við að beita hæfninni.'],
+          ['10','Framúrskarandi hæfni og stöðug frammistaða: nemandi vinnur af öryggi og sjálfstæði í fjölbreyttum og krefjandi aðstæðum. Ekki er gerð krafa um nám umfram viðmið grunnskóla.']],
+  atridi:['Á skólaárinu er kvarðinn 1–10 notaður við mat á verkefnum, prófum og öðrum matsþáttum. Einkunn fyrir verkefni lýsir frammistöðu í því verkefni; t.d. merkir 7,5 að 75% árangri hafi verið náð.',
           'Einkunnir eru gefnar fyrir flokka hæfniviðmiða í hverju greinasviði, á hverju námstímabili. Þannig sést framvinda í hverjum flokki yfir skólaárið.',
-          'Við brautskráningu er gefin einkunn á kvarðanum 4–10 fyrir hvern flokk. Hún byggir á heildstæðu faglegu mati út frá hæfniviðmiðum flokksins og fjölbreyttum matsgögnum, ekki eingöngu á meðaltali einstakra verkefna eða prófa.',
+          'Lokaeinkunn við brautskráningu er gefin á kvarðanum 4–10. Einkunnirnar 1–3 eru ekki notaðar í lokaeinkunn.',
+          'Lokaeinkunn er heildstætt mat á þekkingu, leikni og hæfni nemandans yfir skólaárið, byggt á fjölbreyttum matsgögnum. Hún er ekki einkunn fyrir eitt lokapróf.',
           'Lokaeinkunn greinasviðs er vegið meðaltal einkunna flokkanna samkvæmt vægi hér að neðan, námunduð að næstu heilu tölu.',
-          'Í íslensku, ensku og stærðfræði er einkunnin 7 lágmarksviðmið til að hefja nám á 2. hæfniþrepi í framhaldsskóla.',
+          'Einkunnin 7 merkir að nemandi hafi náð þeirri hæfni sem stefnt er að. Nemandi með 5 eða 6 í íslensku, stærðfræði eða ensku tekur undirbúningsáfanga í greininni í framhaldsskóla.',
           'Gefnar eru tvær einkunnir fyrir list- og verkgreinar: ein fyrir listgreinar og ein fyrir verkgreinar.',
           'Matsviðmið 10. bekkjar í köflum 19–26 í aðalnámskrá eru ekki í notkun skólaárið 2026–2027.',
-          'Nemendur sem stunda nám samkvæmt einstaklingsnámskrá fá einkunnir 4–10 miðað við matsviðmið einstaklingsnámskrárinnar (sbr. kafla 9.7 í aðalnámskrá).']};
+          'Nemendur sem stunda nám samkvæmt einstaklingsnámskrá fá einkunnir 4–10 miðað við markmið einstaklingsnámskrárinnar (sbr. kafla 9.7 í aðalnámskrá).',
+          'Ákvæðið gildir skólaárið 2026–2027, til 1. júlí 2027.']};
 var SAMSETT=[['Listgreinar – lokaeinkunn í vitnisburði',[['Dans',.1],['Sviðslistir',.2],['Sjónlistir',.5],['Tónmennt',.2]]],['Verkgreinar – lokaeinkunn í vitnisburði',[['Heimilisfræði',.4],['Hönnun og smíði',.3],['Textílmennt',.3]]]];
 function vaegiOf(grunn,akv,sid,flokkur,g){
   const k=`${sid}|${flokkur}|${endOf(g)}`; if(akv.vaegi&&akv.vaegi[k]!=null) return akv.vaegi[k];

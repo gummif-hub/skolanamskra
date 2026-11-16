@@ -166,7 +166,7 @@ function vVaegi(){
   const N=G.n10||{kvardi:[],atridi:[]};
   let h=RIT&&st.rit==='__namsmat'?`<div class="intro rit"><b>Námsmat</b><textarea id="nmT" rows="5">${esc(G.namsmat||'')}</textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="laga p" style="float:none" onclick="G.namsmat=document.getElementById('nmT').value;parent.postMessage({skolanamskraTexti:{id:'__namsmat',namsmat:G.namsmat}},'*');st.rit=null;render()">Vista</button><button class="laga" style="float:none" onclick="st.rit=null;render()">Hætta við</button></div></div>`
     :`<div class="intro">${RIT?`<button class="laga" onclick="st.rit='__namsmat';render()">Laga texta</button>`:''}<b>Námsmat.</b> ${esc(G.namsmat||'')}</div>`;
-  h+=`<div class="card"><h3>Námsmat í 10. bekk skólaárið 2026–2027</h3>${G.fyrirvari?`<div class="draft">Byggt á drögum mennta- og barnamálaráðuneytisins að ákvæði til bráðabirgða og stuðningsefni Miðstöðvar menntunar og skólaþjónustu. Síðan verður uppfærð þegar endanleg útgáfa liggur fyrir.</div>`:''}
+  h+=`<div class="card"><h3>Námsmat í 10. bekk skólaárið 2026–2027</h3>${G.fyrirvari?`<div class="draft">Lýsingin getur tekið breytingum ef leiðbeiningar ráðuneytisins eða Miðstöðvar menntunar og skólaþjónustu breytast.</div>`:`<div class="note">Samkvæmt breytingu á aðalnámskrá grunnskóla (ákvæði til bráðabirgða fyrir skólaárið 2026–2027).</div>`}
    <ul>${N.atridi.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
    <h4>Merking einkunna (4–10)</h4>
    <div class="kv">${N.kvardi.map(([e,t],i)=>`<div class="kvr"><span class="kvn k${i}">${esc(e)}</span><span>${esc(t)}</span></div>`).join('')}</div></div>`;
@@ -189,7 +189,7 @@ function vVaegi(){
 function reikna(){
   const I=[...document.querySelectorAll('input.rk')]; if(!I.length) return;
   let s=0,w=0; I.forEach(x=>{const v=Math.min(10,Math.max(4,Number(x.value)||4)); s+=v*Number(x.dataset.w); w+=Number(x.dataset.w)});
-  const m=s/w; document.getElementById('rnid').innerHTML=`Vegið meðaltal: <b>${m.toLocaleString('is-IS',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> → lokaeinkunn <b style="font-size:20px">${Math.round(m)}</b>`;
+  const m=s/w; document.getElementById('rnid').innerHTML=`Vegið meðaltal: <b>${m.toLocaleString('is-IS',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> → lokaeinkunn <b style="font-size:20px">${Math.round(m)}</b>`+(['Íslenska','Stærðfræði','Enska'].includes(st.rsv)&&[5,6].includes(Math.round(m))?`<div class="note">Með ${Math.round(m)} í ${st.rsv==='Enska'?'ensku':st.rsv==='Íslenska'?'íslensku':'stærðfræði'} tekur nemandi undirbúningsáfanga í greininni í framhaldsskóla.</div>`:Math.round(m)>=7?'<div class="note">Nemandi hefur náð þeirri hæfni sem stefnt er að.</div>':'');
 }
 function render(){
   if(PRT){document.getElementById('tabs').style.display='none';let h=`<div class="argsida"><h2>Námsmat og vægi</h2>${vVaegi()}</div>`;for(let g=1;g<=10;g++)h+=vArg(g);document.getElementById('view').innerHTML=h;document.title='Skólanámskrá '+G.stillingar.skoli+' '+G.stillingar.skolaar;setTimeout(()=>window.print(),400);return}
