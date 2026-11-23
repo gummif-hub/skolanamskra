@@ -181,9 +181,13 @@ async function vistaGH(){
   }
   throw new Error('of margar samtímavistanir');
 }
+let ETAG=null;
+async function breyttAGH(){const h={Authorization:'Bearer '+GH.token,Accept:'application/vnd.github+json'};if(ETAG)h['If-None-Match']=ETAG;
+  const r=await fetch(`https://api.github.com/repos/${GH.repo}/contents/${PATH}?ref=${GH.branch}`,{headers:h,cache:'no-cache'});
+  if(r.status===304)return false; if(r.ok){ETAG=r.headers.get('ETag');const j=await r.json();return j.sha!==SHA} return false}
 async function saekjaNytt(){
-  if(!GH.token||!A||PEND)return;
-  try{const x=await ghGet(); if(x.sha===SHA)return;
+  if(!GH.token||!A||PEND||VISTAR||document.hidden)return;
+  try{if(!(await breyttAGH()))return; const x=await ghGet(); if(x.sha===SHA)return;
     A=merge3(BASE?JSON.parse(BASE):{},A,x.akv); SHA=x.sha; BASE=JSON.stringify(x.akv);
     if(!jeq(A,x.akv)) save();
     $('#vista').textContent='Uppfært með breytingum annarra '+klst();
@@ -191,7 +195,7 @@ async function saekjaNytt(){
   }catch(e){}
   if(GH.stjori&&ALM&&ALMSHA&&!(ALMPEND)) try{await almSaekja2()}catch(e){}
 }
-setInterval(saekjaNytt,45000); window.addEventListener('focus',saekjaNytt);
+setInterval(saekjaNytt,60000); window.addEventListener('focus',saekjaNytt);
 /* ---------- Innskráning: aðgangslykill skólans dulkóðaður með lykilorði ---------- */
 const ADGPATH='data/adgangur.json', PBK=600000;
 const u8=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0)), b64=a=>btoa(String.fromCharCode(...new Uint8Array(a)));
@@ -314,14 +318,27 @@ function tab(t){V.tab=t;head();render();window.scrollTo(0,0)}
 function save(){
   A.breytt=new Date().toISOString();
   if(!GH.token){localStorage.setItem('akv_stadbundid',JSON.stringify(A));LOCAL=true;$('#vista').innerHTML='<span style="color:var(--warn)">Vistað í þessum vafra</span>';return}
-  $('#vista').textContent='Vista á GitHub…'; afrit('akv_ovistad',A,BASE);
-  clearTimeout(timer); timer=setTimeout(async()=>{
-    try{const r=await vistaGH(); PEND=false; localStorage.removeItem('akv_ovistad');
-      $('#vista').textContent=(r==='merged'?'Vistað og sameinað breytingum annarra ':'Vistað á GitHub ')+klst();
-      if(r==='merged'&&!busy()&&V.tab!=='alm') render();
-    }catch(e){PEND=false;$('#vista').innerHTML='<span style="color:var(--bad)">Vistun mistókst ('+esc(e.message)+') – breytingar eru enn í þessum glugga</span>'}
-  },2500); PEND=true;
+  afrit('akv_ovistad',A,BASE); if(!VISTAR) $('#vista').textContent='Óvistaðar breytingar…';
+  if(!PEND) FYRSTA=Date.now(); PEND=true; TILRAUN=0; BREYT++;
+  clearTimeout(timer); timer=setTimeout(vistaNu, Date.now()-FYRSTA>20000?0:5000);
 }
+/* Vistun með sjálfvirkum endurtilraunum: breytingar eru geymdar í vafranum þar til vistun tekst */
+let FYRSTA=0, TILRAUN=0, VISTAR=false, BREYT=0;
+async function vistaNu(){
+  clearTimeout(timer); if(!PEND||!GH.token) return;
+  if(VISTAR){timer=setTimeout(vistaNu,1500);return}
+  VISTAR=true; $('#vista').textContent='Vista…'; const b0=BREYT;
+  try{const r=await vistaGH(); VISTAR=false;
+    if(BREYT!==b0){timer=setTimeout(vistaNu,3000);return}
+    PEND=false; TILRAUN=0; localStorage.removeItem('akv_ovistad');
+    $('#vista').textContent=(r==='merged'?'Vistað og sameinað breytingum annarra ':'Vistað ')+klst();
+    if(r==='merged'&&!busy()&&V.tab!=='alm') render();
+  }catch(e){VISTAR=false; TILRAUN++; const bid=Math.min(120,10*2**(TILRAUN-1));
+    $('#vista').innerHTML=`<span style="color:var(--bad)">Ekki vistað enn (${esc(e.message)}) – reyni aftur eftir ${bid} sek. Breytingarnar eru geymdar í vafranum.</span>`;
+    timer=setTimeout(vistaNu,bid*1000)}
+}
+window.addEventListener('online',()=>{if(PEND)vistaNu()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&PEND)vistaNu()});
 /* ---------- hjálparföll ---------- */
 const allV=()=>{const o=[];G.svid.forEach(s=>s.flokkar.forEach(f=>f.yfirheiti.forEach(y=>y.vidmid.forEach(v=>o.push(v)))));return o};
 const fg=(vid,g)=>(A.forgangur[vid]||{})[String(g)]||'';
