@@ -308,6 +308,10 @@ async function load(){
   for(let g=1;g<=10;g++) G.svid.filter(s=>s.id!=='Lykilhæfni'&&s.flokkar.length&&!G.namskrar.some(n=>n.argangur===g&&(n.svid||[]).includes(s.id))).forEach(s=>
     G.N.push({id:'v'+g+'-'+s.id,argangur:g,heiti:s.heiti,svid:[s.id],vidf:[],kh:'',kf:'',gogn:[],mat:'',syndar:true,prim:PRIM.test(s.heiti)}));
   G.NR=G.N.filter(n=>!n.syndar);
+  // áætlun sem gerð var á grein án námskrár færist á námskrá kennara þegar hún berst
+  const vfinn=id=>{const m=/^v(\d+)-(.+)$/.exec(id);if(!m||G.N.some(n=>n.id===id))return id;const r=G.NR.find(n=>n.argangur===+m[1]&&(n.svid||[]).includes(m[2]));return r?r.id:id};
+  G._vfinn=vfinn;
+  {let br=false;(A.namsaetlanir||[]).forEach(a=>{const n0=G._vfinn(a.nam);if(n0!==a.nam){a.nam=n0;br=true}if(a.namar){const nm=a.namar.map(G._vfinn);if(nm.join()!==a.namar.join()){a.namar=nm;br=true}}});if(br&&GH.token)save()}
   if(GH.token&&!A.stillingar.n10stadfest){A.stillingar.n10stadfest='2026-11-13';A.stillingar.fyrirvari=false;save()}
   head(); render(); notandi(); adgSaekja(); birtaSidar(true);
   if(!GH.token) $('#vista').innerHTML=LOCAL?'<span style="color:var(--warn)">Óvistaðar breytingar í þessum vafra</span>':'Skoðunarhamur';
