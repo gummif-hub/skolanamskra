@@ -79,7 +79,7 @@ function header(){
   document.getElementById('ft').innerHTML=`Útgáfa ${esc(G.dags)}${G.drog?' · <span class="draft">Drög – forgangsröðun ekki að fullu staðfest</span>':''}<br>Byggt á aðalnámskrá grunnskóla og stuðningsefni Miðstöðvar menntunar og skólaþjónustu (MMS). Hæfniviðmið í heild: <a href="https://www.adalnamskra.is/grunnskoli" target="_blank" rel="noopener">adalnamskra.is</a>.`;
 }
 function tabs(){
-  const T=[['arg','Eftir árgangi'],['grein','Eftir grein'],['vaegi','Námsmat og vægi']];
+  const T=[['arg','Eftir árgangi'],['grein','Eftir grein']];
   document.getElementById('tabs').innerHTML=T.map(([k,l])=>`<button class="${st.tab===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
 }
 function go(t,extra){Object.assign(st,{tab:t},extra||{});render();window.scrollTo(0,0)}
@@ -192,8 +192,8 @@ function reikna(){
   const m=s/w; document.getElementById('rnid').innerHTML=`Vegið meðaltal: <b>${m.toLocaleString('is-IS',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> → lokaeinkunn <b style="font-size:20px">${Math.round(m)}</b>`+(['Íslenska','Stærðfræði','Enska'].includes(st.rsv)?(Math.round(m)>=7?'<div class="note">Með 7–10 í greininni má gera ráð fyrir hæfni til að hefja nám á öðru hæfniþrepi í framhaldsskóla.</div>':'<div class="note">Um tengsl við hæfniþrep framhaldsskóla fer samkvæmt kafla 9.5 í aðalnámskrá.</div>'):Math.round(m)>=7?'<div class="note">Hæfniviðmiðum hefur verið náð.</div>':'');
 }
 function render(){
-  if(PRT){document.getElementById('tabs').style.display='none';let h=`<div class="argsida"><h2>Námsmat og vægi</h2>${vVaegi()}</div>`;for(let g=1;g<=10;g++)h+=vArg(g);document.getElementById('view').innerHTML=h;document.title='Skólanámskrá '+G.stillingar.skoli+' '+G.stillingar.skolaar;setTimeout(()=>window.print(),400);return}
-  tabs();document.getElementById('view').innerHTML=st.tab==='arg'?vArg():st.tab==='grein'?vGrein():vVaegi();}
+  if(PRT){document.getElementById('tabs').style.display='none';let h='';for(let g=1;g<=10;g++)h+=vArg(g);document.getElementById('view').innerHTML=h;document.title='Skólanámskrá '+G.stillingar.skoli+' '+G.stillingar.skolaar;setTimeout(()=>window.print(),400);return}
+  tabs();document.getElementById('view').innerHTML=st.tab==='grein'?vGrein():vArg();}
 async function start(){
   if(!G){
     try{
