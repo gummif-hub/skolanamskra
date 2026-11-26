@@ -560,7 +560,7 @@ function delNa(id){if(!confirm('Eyða þessari námsáætlun?'))return;A.namsaet
 let TPL=null;
 async function toDataURL(u){if(!u||u.startsWith('data:'))return u;try{const b=await (await fetch(u)).blob();return await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)})}catch(e){return null}}
 async function pubHTML(ham){
-  if(!TPL) TPL=await (await fetch('skolanamskra.html')).text();
+  if(!TPL) TPL=await (await fetch('skolanamskra.html?t='+Date.now(),{cache:'no-store'})).text();
   const data=buildPub(G,A); data.stillingar.merki=await toDataURL(data.stillingar.merki);
   return TPL.replace('let G = /*GOGN*/null;',(ham==='rit'?'window.RITHAM=true;':ham==='prenta'?'window.PRENTA=true;':'')+'let G = '+JSON.stringify(data).replace(/</g,'\\u003c')+';');
 }
