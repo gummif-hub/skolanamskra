@@ -1,10 +1,20 @@
 {
  "v": 1,
  "iter": 600000,
- "salt": "4irwDJaLs8eQMILcYayokQ==",
- "iv": "HOEAVyf51OtArXOS",
- "ct": "7g8DMqWM7+EU1sNa71q62vpdjHhudX9hCZwX5mHOhlKaEO1dsTInQsTD3FkEq7iG5+pqu5DAMypBxmTvnyksSf9PmPf3LNoOLz6DTeCdqo7Q+i0Io39XNuQL/Dr46KVAN4t0ub2dTAJ+vF+ryHlVdHrOSOD6SBpjgwveVwNkhS4aSj4D1lOfVOg4NhX+TT2Vgs8HLkw6Pfe1iur20vpvnEq+qrNB4/EV",
+ "salt": "gLiMSMIDi8WQTUWE/nHiyw==",
+ "iv": "5kcgU1wyGjvyCcuI",
+ "ct": "J5LAL8vz5574f5gOg0/rNOPYZE8yalmWfcxyPSpzPY6K0Ru2hHiqMAD3f06kMaXFlb/jqUtDSYjFF/DUdpOtFp4tS3ZuVZcM1jnqjCQfQoNvNxzMFGM0/bHMmPaJQ238zlOA12gHWLs7VQzBsMKn5hRq0MJ0z2wxRExqXsbl0FYa96VWqSMKUomaj4p3ZoAm6dK/m7JW/05NwWoYUeiq2vLQpEKMAirW",
  "repo": "gummif-hub/skolanamskra",
  "branch": "main",
- "uppfaert": "2026-11-13"
+ "uppfaert": "2026-11-26",
+ "stjori": {
+  "v": 1,
+  "iter": 600000,
+  "salt": "7YCbjcLTy02T9K50LUdYkw==",
+  "iv": "QmF9+DH8zeUxQ6XU",
+  "ct": "32icr/n6oi7DmK5pF/9HLMNlKzkAutHjxeV72QoHdCKj4LILv5wDSrF4EGPSS62INKdxjGseAtn+roMLLDfsnccNS/90sck4M5cFJ3MdyoIM+mcd/xOH8eo9C2/gBz2NS5rF0wr8hFsBTqnEWY3MYYkv4SvlCYdOsS9FLt9WE3omkG+A5uBqZsl6OdD4SXh2HYZJcSC5SWiXC+MQG+wZgt0qWrnP6sYBhzN+f1BGQOszE9uMYLmCcfvMghw0UOLl/br/nsXdm2mW4DFEvzMeP0eEna5wR5dqnYUSoA==",
+  "repo": "gummif-hub/skolanamskra",
+  "branch": "main",
+  "uppfaert": "2026-11-26"
+ }
 }
